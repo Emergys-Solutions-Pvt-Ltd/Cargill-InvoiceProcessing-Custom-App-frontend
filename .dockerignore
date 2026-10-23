@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.*
+*.log
+create_pdfs.py
+Dockerfile
+docker-compose*.yml
+.dockerignore
+.git
+.vscode
+.vs
