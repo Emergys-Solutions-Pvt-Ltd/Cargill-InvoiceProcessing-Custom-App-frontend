@@ -16,6 +16,8 @@ import InvoiceDetails from './pages/app/InvoiceDetails';
 import TeamAssignment from './pages/app/TeamAssignment';
 import Users from './pages/settings/Users';
 import Configuration from './pages/settings/Configuration';
+import SapConfiguration from './pages/settings/sap/SapConfiguration';
+import SapIntegrationDetail from './pages/settings/sap/SapIntegrationDetail';
 import { APPS } from './utils/appHelper';
 
 const SmartRedirect = () => {
@@ -58,12 +60,15 @@ function App() {
                   </Route>
                 ))}
 
-                {/* Settings (Admin Role Required): Users + Configuration (master data) */}
+                {/* Settings (Admin Role Required): Users + Configuration (master data) + SAP Configuration (integrations) */}
                 <Route path="settings" element={<AuthRoute requireAdmin={true} />}>
                   <Route index element={<Navigate to="users" replace />} />
                   <Route path="users" element={<Users />} />
                   <Route path="configuration" element={<Configuration />} />
                   <Route path="configuration/:entity" element={<Configuration />} />
+                  <Route path="sap-configuration" element={<SapConfiguration />} />
+                  <Route path="sap-configuration/:id" element={<SapIntegrationDetail />} />
+                  <Route path="sap-configuration/:id/:tab" element={<SapIntegrationDetail />} />
                 </Route>
               </Route>
 

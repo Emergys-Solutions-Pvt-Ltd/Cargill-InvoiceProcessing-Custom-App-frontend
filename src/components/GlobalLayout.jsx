@@ -27,7 +27,7 @@ const getInitials = (name = '') =>
     .map((part) => part[0].toUpperCase())
     .join('') || '?';
 
-/** One collapsible menu section ("Settings" > Users / Configuration). */
+/** One collapsible menu section ("Settings" > Users / Configuration / SAP Configuration). */
 const NavSection = ({ icon: Icon, label, basePath, active, children }) => {
   const [open, setOpen] = useState(active);
 
@@ -141,6 +141,7 @@ const GlobalLayout = () => {
               >
                 <SubItem to="/settings/users" label={t('usersMenu', 'Users')} />
                 <SubItem to="/settings/configuration" label={t('configurationMenu', 'Configuration')} />
+                <SubItem to="/settings/sap-configuration" label={t('sapConfigurationMenu', 'SAP Configuration')} />
               </NavSection>
             )}
           </nav>
