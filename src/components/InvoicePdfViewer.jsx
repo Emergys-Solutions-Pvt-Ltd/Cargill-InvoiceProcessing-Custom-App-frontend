@@ -2,31 +2,31 @@ import React, { useContext, useRef, useState } from 'react';
 import { FileText, Mail, UploadCloud, Loader2 } from 'lucide-react';
 import { apiClient } from '../services/network.service';
 import { LanguageContext } from '../context/LanguageContext';
+import SourceEmailPreview from './SourceEmailPreview';
 
 /**
  * Right-hand PDF panel of the Invoice Details page:
  *   File Name : IN-0001065698.pdf                     [PDF] [Email] [Upload]
  *   browser PDF viewer with the page-thumbnail sidebar (navpanes=1) and toolbar
  * Signed attachment URLs are same-origin (/api/files/...), so the browser viewer can frame them.
+ * [Email] previews the email the invoice was received through (invoice.sourceEmail).
  */
 const InvoicePdfViewer = ({ invoice, attachments, selectedId, onSelect, onUploaded }) => {
   const { t } = useContext(LanguageContext);
   const fileInput = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [emailOpen, setEmailOpen] = useState(false);
 
   const current = attachments.find((a) => a.id === selectedId) || attachments[0];
 
   const openPdf = () => current && window.open(current.url, '_blank', 'noopener');
 
-  const emailInvoice = () => {
-    const subject = `${t('invoice', 'Invoice')} ${invoice.invoiceNumber}`;
-    const body = [
-      `${t('invoice', 'Invoice')}: ${invoice.invoiceNumber}`,
-      `${t('vendorName', 'Vendor')}: ${invoice.vendorLegalName}`,
-      `${t('link', 'Link')}: ${window.location.href}`
-    ].join('\n');
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const sourceEmail = invoice.sourceEmail;
+
+  const showAttachment = (id) => {
+    onSelect(id);
+    setEmailOpen(false);
   };
 
   const handleUpload = async (e) => {
@@ -77,7 +77,13 @@ const InvoicePdfViewer = ({ invoice, attachments, selectedId, onSelect, onUpload
           <button type="button" className="pdf-icon pdf" title={t('openPdf', 'Open PDF in a new tab')} onClick={openPdf} disabled={!current}>
             <FileText size={18} />
           </button>
-          <button type="button" className="pdf-icon mail" title={t('emailInvoice', 'Email this invoice')} onClick={emailInvoice}>
+          <button
+            type="button"
+            className="pdf-icon mail"
+            title={sourceEmail ? t('viewSourceEmail', 'View the email this invoice was received through') : t('noSourceEmail', 'This invoice was not received by email')}
+            onClick={() => setEmailOpen(true)}
+            disabled={!sourceEmail}
+          >
             <Mail size={18} />
           </button>
           <button type="button" className="pdf-icon upload" title={t('uploadPdf', 'Upload a PDF')} onClick={() => fileInput.current?.click()} disabled={uploading}>
@@ -98,6 +104,10 @@ const InvoicePdfViewer = ({ invoice, attachments, selectedId, onSelect, onUpload
         />
       ) : (
         <div className="pdf-panel-empty">{t('noPdf', 'No PDF attached to this invoice.')}</div>
+      )}
+
+      {emailOpen && sourceEmail && (
+        <SourceEmailPreview email={sourceEmail} onClose={() => setEmailOpen(false)} onSelectAttachment={showAttachment} />
       )}
     </div>
   );

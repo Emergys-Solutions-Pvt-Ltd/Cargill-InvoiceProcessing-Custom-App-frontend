@@ -156,14 +156,19 @@
   "backToInvoicesOf": "Volver a facturas de {app}",
   "fileName": "Nombre de Archivo",
   "openPdf": "Abrir PDF en una pestaña nueva",
-  "emailInvoice": "Enviar esta factura por correo",
   "uploadPdf": "Subir un PDF",
   "onlyPdf": "Solo se pueden subir archivos PDF.",
   "uploadFailed": "Error al subir el archivo",
   "uploaded": "subido",
   "noPdf": "Esta factura no tiene un PDF adjunto.",
-  "invoice": "Factura",
-  "link": "Enlace",
   "pickUserFirst": "Busque un usuario (o escriba un correo) antes de agregar.",
-  "addedTo": "agregado a"
+  "addedTo": "agregado a",
+  "viewSourceEmail": "Ver el correo por el que se recibió esta factura",
+  "noSourceEmail": "Esta factura no se recibió por correo",
+  "sourceEmail": "Correo Recibido",
+  "noSubject": "(sin asunto)",
+  "emailTo": "Para",
+  "emailCc": "CC",
+  "emailAttachments": "Adjuntos",
+  "showInPreview": "Mostrar en la vista previa del PDF"
 }

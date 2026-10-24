@@ -156,14 +156,19 @@
   "backToInvoicesOf": "Back to {app} invoices",
   "fileName": "File Name",
   "openPdf": "Open PDF in a new tab",
-  "emailInvoice": "Email this invoice",
   "uploadPdf": "Upload a PDF",
   "onlyPdf": "Only PDF files can be uploaded.",
   "uploadFailed": "Upload failed",
   "uploaded": "uploaded",
   "noPdf": "No PDF attached to this invoice.",
-  "invoice": "Invoice",
-  "link": "Link",
   "pickUserFirst": "Look up a user (or type an email) before adding.",
-  "addedTo": "added to"
+  "addedTo": "added to",
+  "viewSourceEmail": "View the email this invoice was received through",
+  "noSourceEmail": "This invoice was not received by email",
+  "sourceEmail": "Received Email",
+  "noSubject": "(no subject)",
+  "emailTo": "To",
+  "emailCc": "Cc",
+  "emailAttachments": "Attachments",
+  "showInPreview": "Show in PDF preview"
 }

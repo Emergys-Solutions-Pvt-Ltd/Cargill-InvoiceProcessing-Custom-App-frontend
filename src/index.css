@@ -1400,3 +1400,158 @@ th.sortable-header:hover {
   margin-left: 0.3rem;
   vertical-align: middle;
 }
+
+/* Received-email preview (Invoice Details > PDF preview > Email) */
+.email-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.email-subject {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.email-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.email-avatar {
+  flex-shrink: 0;
+  background: #1f5f8b;
+}
+
+.email-meta-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-from {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.email-address,
+.email-recipients,
+.email-date {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.email-address,
+.email-recipients span {
+  overflow-wrap: anywhere;
+}
+
+.email-recipients {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.15rem;
+}
+
+.email-date {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.email-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.email-attachments {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.email-attachments-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.6rem;
+}
+
+.email-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.email-attachment {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.email-attachment-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.email-attachment-main:hover,
+.email-attachment-open:hover {
+  background: var(--table-row-hover);
+}
+
+.email-attachment-type {
+  flex-shrink: 0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #fdecea;
+  color: #c0392b;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.email-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-attachment-size {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.email-attachment-open {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .email-meta { flex-wrap: wrap; }
+  .email-date { width: 100%; padding-left: calc(34px + 0.75rem); }
+}
