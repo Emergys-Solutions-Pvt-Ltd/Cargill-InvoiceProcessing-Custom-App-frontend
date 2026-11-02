@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AlertCircle, CheckCircle, KeyRound, ShieldCheck } from 'lucide-react';
 import { LanguageContext } from '../../../context/LanguageContext';
-import { Field, ListInput, apiError, errorsFor, formatDateTime } from './sapUi';
+import { Field, ListInput, apiError, errorsFor, formatDateTime } from './integrationUi';
 
 /**
  * 3.2 Authentication: pluggable method (fields come from the API catalog), non-secret settings,
@@ -9,9 +9,10 @@ import { Field, ListInput, apiError, errorsFor, formatDateTime } from './sapUi';
  * New integration: credentials are sent with the create request. Existing: "Save credentials"
  * stores / rotates them immediately (PUT /integrations/:id/credentials).
  */
-const SecretInput = ({ field, value, onChange }) =>
+const SecretInput = ({ field, value, onChange, ...rest }) =>
   field.name === 'extraHeaderValues' ? null : (
     <input
+      {...rest}
       className="input-field"
       type="password"
       autoComplete="new-password"

@@ -12,10 +12,10 @@ import AuthenticationTab, { buildSecret } from './AuthenticationTab';
 import ExtractionTab from './ExtractionTab';
 import ScheduleTab from './ScheduleTab';
 import DashboardTab from './DashboardTab';
-import { StatusBadge, apiError, countErrors, emptyIntegration, toForm, toPayload } from './sapUi';
+import { StatusBadge, apiError, countErrors, emptyIntegration, providerUi, toForm, toPayload } from './integrationUi';
 
 /**
- * One SAP integration: Connection · Authentication · Extraction · Schedule · Dashboard & History.
+ * One integration (SAP OData or OnBase): Connection · Authentication · Extraction · Schedule · Dashboard & History.
  * The configuration tabs edit one document saved with "Save" (optimistic concurrency via version);
  * credentials are write-only and saved separately; dashboard actions act immediately.
  */
@@ -61,14 +61,28 @@ const TestResultModal = ({ result, onClose }) => {
           <p className="sap-mono">{result.details.entitySets.join(', ')}</p>
         </details>
       )}
+      {Object.entries(result.details?.sampleKeywords || {}).map(([profile, keywords]) => (
+        <details key={profile} className="sap-details" open>
+          <summary>{t('onbaseSampleKeywords', 'Keywords of the sample document')} – {profile}</summary>
+          <table className="sap-keyword-table">
+            <tbody>
+              {Object.entries(keywords || {}).map(([name, value]) => (
+                <tr key={name}><td className="sap-mono">keywords/{name}</td><td>{value}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      ))}
       <div className="modal-actions"><button type="button" className="btn btn-outline" onClick={onClose}>{t('close', 'Close')}</button></div>
     </Modal>
   );
 };
 
-const SapIntegrationDetail = () => {
+const IntegrationDetail = ({ providerType = 'sap-odata' }) => {
   const { t } = useContext(LanguageContext);
   const { id: idParam, tab: tabParam } = useParams();
+  const ui = providerUi(providerType);
+  const basePath = ui.basePath;
   const navigate = useNavigate();
   const isNew = idParam === 'new';
   const [catalog, setCatalog] = useState(null);
@@ -104,7 +118,7 @@ const SapIntegrationDetail = () => {
         if (!alive) return;
         setCatalog(cat.data);
         setIntegration(item?.data ?? null);
-        const initial = item ? toForm(item.data) : emptyIntegration();
+        const initial = item ? toForm(item.data) : emptyIntegration(providerType);
         setForm(initial);
         setSavedForm(initial);
       } catch (err) {
@@ -115,7 +129,7 @@ const SapIntegrationDetail = () => {
     return () => {
       alive = false;
     };
-  }, [idParam, isNew]);
+  }, [idParam, isNew, providerType]);
 
   const dirty = useMemo(() => !!form && JSON.stringify(form) !== JSON.stringify(savedForm), [form, savedForm]);
 
@@ -129,11 +143,11 @@ const SapIntegrationDetail = () => {
 
   const leave = () => {
     // eslint-disable-next-line no-alert
-    if (!dirty || window.confirm(t('sapLeaveConfirm', 'Leave this page and discard your changes?'))) navigate('/settings/sap-configuration');
+    if (!dirty || window.confirm(t('sapLeaveConfirm', 'Leave this page and discard your changes?'))) navigate(basePath);
   };
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
-  const goTab = (id) => navigate(`/settings/sap-configuration/${idParam}/${id}`, { replace: true });
+  const goTab = (id) => navigate(`${basePath}/${idParam}/${id}`, { replace: true });
 
   const applySaved = (data) => {
     setIntegration(data);
@@ -154,7 +168,7 @@ const SapIntegrationDetail = () => {
         setSavedForm(form); // allow navigation without the unsaved-changes prompt
         setSecretDraft({ values: {}, errors: {} });
         notify(r.data.message);
-        navigate(`/settings/sap-configuration/${r.data.data.id}/dashboard`, { replace: true });
+        navigate(`${basePath}/${r.data.data.id}/dashboard`, { replace: true });
       } else {
         const r = await apiClient.put(`/integrations/${integration.id}`, { ...toPayload(form), version: integration.version });
         applySaved(r.data.data);
@@ -229,13 +243,13 @@ const SapIntegrationDetail = () => {
   const remove = async () => {
     await apiClient.delete(`/integrations/${integration.id}`);
     setSavedForm(form);
-    navigate('/settings/sap-configuration', { replace: true });
+    navigate(basePath, { replace: true });
   };
 
   if (loadError) {
     return (
       <div>
-        <button type="button" className="btn btn-outline" onClick={() => navigate('/settings/sap-configuration')}><ArrowLeft size={15} /> {t('back', 'Back')}</button>
+        <button type="button" className="btn btn-outline" onClick={() => navigate(basePath)}><ArrowLeft size={15} /> {t('back', 'Back')}</button>
         <div className="form-error" style={{ marginTop: '1rem' }}><AlertCircle size={15} /> {loadError}</div>
       </div>
     );
@@ -250,7 +264,7 @@ const SapIntegrationDetail = () => {
       <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div>
           <button type="button" className="btn-link sap-back" onClick={leave}>
-            <ArrowLeft size={14} /> {t('sapConfigurationMenu', 'SAP Configuration')}
+            <ArrowLeft size={14} /> {t(ui.titleKey, ui.title)}
           </button>
           <h1 className="page-title sap-title">
             {isNew ? t('sapNewIntegration', 'New integration') : integration.name}
@@ -300,7 +314,7 @@ const SapIntegrationDetail = () => {
           const errors = countErrors(fieldErrors, x.errors);
           const Icon = x.icon;
           return (
-            <NavLink key={x.id} to={`/settings/sap-configuration/${idParam}/${x.id}`} replace className={() => `tab-link ${tab === x.id ? 'active' : ''}`}>
+            <NavLink key={x.id} to={`${basePath}/${idParam}/${x.id}`} replace className={() => `tab-link ${tab === x.id ? 'active' : ''}`}>
               <Icon size={15} /> {t(x.label, x.fallback)}
               {errors > 0 && <span className="badge badge-danger sap-tab-errors">{errors}</span>}
             </NavLink>
@@ -332,4 +346,4 @@ const SapIntegrationDetail = () => {
   );
 };
 
-export default SapIntegrationDetail;
+export default IntegrationDetail;

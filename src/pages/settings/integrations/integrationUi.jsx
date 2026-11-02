@@ -102,28 +102,76 @@ export const errorsFor = (fieldErrors, prefix) =>
 export const countErrors = (fieldErrors, prefixes) =>
   Object.keys(fieldErrors || {}).filter((path) => prefixes.some((p) => path === p || path.startsWith(`${p}.`))).length;
 
-export const emptyIntegration = () => ({
-  providerType: 'sap-odata',
+/**
+ * Per-provider screen settings: route, menu / page texts, new-integration defaults.
+ * The tabs are shared; provider-specific inputs switch on form.providerType.
+ */
+export const PROVIDER_UI = {
+  'sap-odata': {
+    basePath: '/settings/sap-configuration',
+    titleKey: 'sapConfigurationMenu',
+    title: 'SAP Configuration',
+    subtitleKey: 'sapConfigurationSubtitle',
+    subtitle: 'Connect SAP OData services and synchronize their invoices into General Payments and SJO invoice processing.',
+    emptyTitleKey: 'sapNoIntegrations',
+    emptyTitle: 'No SAP integration yet',
+    emptyHintKey: 'sapNoIntegrationsHint',
+    emptyHint: 'Create an integration with the SAP system URL, credentials and what to extract for General Payments and SJO.',
+    sourceSystemPlaceholder: 'S4P-100',
+    connection: {
+      baseUrl: '',
+      servicePath: '/sap/opu/odata/sap/API_SUPPLIERINVOICE_PROCESS_SRV',
+      odataVersion: 'v2',
+      apiVersion: '',
+      sapClient: '',
+      language: '',
+      timeoutMs: 30000,
+      maxRetries: 3,
+      minRequestIntervalMs: 0,
+      defaultPageSize: 500,
+      customHeaders: {}
+    },
+    authType: 'oauth2-client-credentials',
+    authSettings: { clientAuthentication: 'basic' }
+  },
+  'onbase-rest': {
+    basePath: '/settings/onbase-configuration',
+    titleKey: 'onbaseConfigurationMenu',
+    title: 'OnBase Configuration',
+    subtitleKey: 'onbaseConfigurationSubtitle',
+    subtitle: 'Connect Hyland OnBase and import invoice documents (keywords + PDF) into General Payments and SJO invoice processing.',
+    emptyTitleKey: 'onbaseNoIntegrations',
+    emptyTitle: 'No OnBase integration yet',
+    emptyHintKey: 'onbaseNoIntegrationsHint',
+    emptyHint: 'Create an integration with the Hyland API Server URL, the IdP integration user and the invoice document types to import.',
+    sourceSystemPlaceholder: 'ONBASE-PRD',
+    connection: {
+      apiServerUrl: '',
+      coreApiPath: '/onbase/core',
+      timeoutMs: 30000,
+      maxRetries: 3,
+      minRequestIntervalMs: 0,
+      maxResults: 1000,
+      keywordConcurrency: 4,
+      maxDocumentMb: 25
+    },
+    authType: 'hyland-idp-password',
+    authSettings: { scope: 'evolution', affinityCookie: 'FB_LB' }
+  }
+};
+
+export const providerUi = (providerType) => PROVIDER_UI[providerType] || PROVIDER_UI['sap-odata'];
+
+export const emptyIntegration = (providerType = 'sap-odata') => ({
+  providerType,
   name: '',
   description: '',
   environment: '',
   sourceSystem: '',
   isActive: true,
-  connection: {
-    baseUrl: '',
-    servicePath: '/sap/opu/odata/sap/API_SUPPLIERINVOICE_PROCESS_SRV',
-    odataVersion: 'v2',
-    apiVersion: '',
-    sapClient: '',
-    language: '',
-    timeoutMs: 30000,
-    maxRetries: 3,
-    minRequestIntervalMs: 0,
-    defaultPageSize: 500,
-    customHeaders: {}
-  },
-  authType: 'oauth2-client-credentials',
-  authSettings: { clientAuthentication: 'basic' },
+  connection: { ...providerUi(providerType).connection },
+  authType: providerUi(providerType).authType,
+  authSettings: { ...providerUi(providerType).authSettings },
   schedule: { mode: 'interval', intervalMinutes: 60, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC' },
   autoSyncEnabled: false,
   retryPolicy: { maxAttempts: 3, baseDelaySeconds: 60, maxDelaySeconds: 3600 },
@@ -146,21 +194,32 @@ export const profileFromTemplate = (template) => ({
   templateId: template.id
 });
 
-export const blankProfile = () => ({
+export const blankProfile = (providerType = 'sap-odata') => ({
   id: null,
   name: '',
   moduleSlug: 'GP',
   isActive: true,
-  settings: { entitySet: '', filters: [], incrementalFieldType: 'DateTimeOffset', overlapMinutes: 5 },
-  keyFields: [],
-  invoiceCodeTemplate: 'INV-{prefix}-SAP-{SupplierInvoice}-{FiscalYear}',
+  ...(providerType === 'onbase-rest'
+    ? {
+        settings: { documentTypes: [], keywordFilters: [], incremental: true, overlapDays: 1, lookbackDays: 30, windowDays: 7, pageSize: 50, attachDocuments: true },
+        keyFields: ['documentId'],
+        invoiceCodeTemplate: 'INV-{prefix}-OB-{documentId}'
+      }
+    : {
+        settings: { entitySet: '', filters: [], incrementalFieldType: 'DateTimeOffset', overlapMinutes: 5 },
+        keyFields: [],
+        invoiceCodeTemplate: 'INV-{prefix}-SAP-{SupplierInvoice}-{FiscalYear}'
+      }),
   fieldMapping: {},
   cancellationRule: null,
   defaultStatus: 'Pending',
   initialFrom: null
 });
 
-const OPTIONAL_NUMBERS = ['pageSize', 'maxRecordsPerRun', 'timeoutMs', 'maxRetries', 'minRequestIntervalMs', 'defaultPageSize'];
+const OPTIONAL_NUMBERS = [
+  'pageSize', 'maxRecordsPerRun', 'timeoutMs', 'maxRetries', 'minRequestIntervalMs', 'defaultPageSize',
+  'maxResults', 'keywordConcurrency', 'maxDocumentMb', 'overlapDays', 'lookbackDays', 'windowDays'
+];
 
 /** Empty optional inputs are omitted so server defaults apply. */
 const compact = (obj) =>
@@ -209,10 +268,14 @@ export const toPayload = (form) => ({
 
 /** Integration from the API -> editable form state. */
 export const toForm = (integration) => ({
-  ...emptyIntegration(),
+  ...emptyIntegration(integration.providerType),
   ...integration,
   description: integration.description || '',
   environment: integration.environment || '',
-  connection: { ...emptyIntegration().connection, ...integration.connection },
-  profiles: integration.profiles.map((p) => ({ ...p, fieldMapping: p.fieldMapping || {}, settings: { filters: [], ...p.settings } }))
+  connection: { ...emptyIntegration(integration.providerType).connection, ...integration.connection },
+  profiles: integration.profiles.map((p) => ({
+    ...p,
+    fieldMapping: p.fieldMapping || {},
+    settings: integration.providerType === 'onbase-rest' ? { keywordFilters: [], ...p.settings } : { filters: [], ...p.settings }
+  }))
 });

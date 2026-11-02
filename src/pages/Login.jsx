@@ -113,7 +113,7 @@ const Login = () => {
             <img src={cargillLogo} alt="Cargill" style={{ height: '36px', filter: 'brightness(1.1)' }} />
           </div>
           <h1 style={{ fontSize: '1.65rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>{t('welcomeBack')}</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Sign in to access Cargill Custom Applications & UAM</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('signInTo', 'Sign in to access LATAM Invoice Workflow')}</p>
         </div>
 
         {error && (

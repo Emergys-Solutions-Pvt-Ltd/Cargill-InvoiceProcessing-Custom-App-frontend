@@ -4,7 +4,7 @@ import { apiClient } from '../../../services/network.service';
 import { LanguageContext } from '../../../context/LanguageContext';
 import Modal from '../../../components/Modal';
 import Pager from '../../../components/Pager';
-import { StatusBadge, apiError, formatDateTime, formatDuration, formatNumber } from './sapUi';
+import { StatusBadge, apiError, formatDateTime, formatDuration, formatNumber } from './integrationUi';
 
 /**
  * 3.5 Synchronization dashboard and history: KPIs for a period, the active / last job, job history

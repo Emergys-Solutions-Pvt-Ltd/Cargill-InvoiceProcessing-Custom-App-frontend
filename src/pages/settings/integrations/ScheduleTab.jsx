@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { LanguageContext } from '../../../context/LanguageContext';
-import { Field, StatusBadge, Toggle, errorsFor, formatDateTime } from './sapUi';
+import { Field, StatusBadge, Toggle, errorsFor, formatDateTime } from './integrationUi';
 
 /** 3.4 Synchronization schedule: frequency, time zone, automatic on/off, retries, current state. */
 const PRESETS = [

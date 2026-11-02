@@ -4,7 +4,7 @@ import { LanguageContext } from '../../../context/LanguageContext';
 import { useStatuses } from '../../../services/statuses';
 import { APPS } from '../../../utils/appHelper';
 import ConfirmDialog from '../../../components/ConfirmDialog';
-import { Field, ListInput, Toggle, blankProfile, errorsFor, formatDateTime, profileFromTemplate } from './sapUi';
+import { Field, ListInput, Toggle, blankProfile, errorsFor, formatDateTime, profileFromTemplate } from './integrationUi';
 
 /**
  * 3.3 Invoice extraction: one profile per target application (General Payments, SJO ...), each
@@ -57,12 +57,12 @@ const FiltersEditor = ({ filters, onChange, errors }) => {
   );
 };
 
-const MappingTable = ({ mapping, onChange, catalog, errors }) => {
+const MappingTable = ({ mapping, onChange, catalog, errors, hint }) => {
   const { t } = useContext(LanguageContext);
   const set = (field, patch) => onChange({ ...mapping, [field]: { ...(mapping[field] || {}), ...patch } });
   return (
     <div className="input-group">
-      <label>{t('sapFieldMapping', 'Field mapping')} <small className="sap-muted">({t('sapFieldMappingHint', 'SAP property path, e.g. TaxNumber1 or to_Supplier/TaxNumber1')})</small></label>
+      <label>{t('sapFieldMapping', 'Field mapping')} <small className="sap-muted">({hint})</small></label>
       {errors._ && <div className="sap-field-error">{errors._}</div>}
       <div className="table-container">
         <table className="sap-mapping-table">
@@ -109,7 +109,150 @@ const MappingTable = ({ mapping, onChange, catalog, errors }) => {
   );
 };
 
-const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldErrors, statuses, onResetCursor, template }) => {
+/** SAP OData: entity set, $select / $expand, filters, $orderby, paging, incremental field. */
+const SapQuerySettings = ({ profile, onChange, s, se, e, prefix, fieldErrors, setSettings, statuses }) => {
+  const { t } = useContext(LanguageContext);
+  return (
+    <>
+            <h4 className="sap-subheading">{t('sapODataQuery', 'OData query')}</h4>
+            <div className="form-grid sap-grid-3">
+              <Field label={t('sapEntitySet', 'Entity set')} required error={se.entitySet}>
+                <input className="input-field" value={s.entitySet || ''} placeholder="A_SupplierInvoice" onChange={(ev) => setSettings({ entitySet: ev.target.value })} />
+              </Field>
+              <Field label="$select" error={se.select} hint={t('sapSelectHint', 'Empty = all properties')}>
+                <input className="input-field" value={s.select || ''} placeholder="SupplierInvoice,FiscalYear,..." onChange={(ev) => setSettings({ select: ev.target.value })} />
+              </Field>
+              <Field label="$expand" error={se.expand}>
+                <input className="input-field" value={s.expand || ''} placeholder="to_Supplier" onChange={(ev) => setSettings({ expand: ev.target.value })} />
+              </Field>
+            </div>
+            <FiltersEditor filters={s.filters || []} onChange={(filters) => setSettings({ filters })} errors={errorsFor(fieldErrors, `${prefix}.settings.filters`)} />
+            <div className="form-grid">
+              <Field label={`${t('sapCustomFilter', 'Advanced $filter')}`} error={se.customFilter} hint={t('sapCustomFilterHint', 'Raw OData expression added with AND, e.g. InvoiceGrossAmount gt 0')}>
+                <input className="input-field" value={s.customFilter || ''} onChange={(ev) => setSettings({ customFilter: ev.target.value })} />
+              </Field>
+              <Field label="$orderby" error={se.orderBy} hint={s.incrementalField ? t('sapOrderByIncremental', 'Ignored: incremental profiles read by change time') : t('sapOrderByHint', 'Default: key fields ascending')}>
+                <input className="input-field" value={s.orderBy || ''} disabled={!!s.incrementalField} placeholder="PostingDate asc" onChange={(ev) => setSettings({ orderBy: ev.target.value })} />
+              </Field>
+            </div>
+            <div className="form-grid sap-grid-3">
+              <Field label={t('sapProfilePageSize', 'Page size ($top)')} error={se.pageSize} hint={t('sapPageSizeHint', 'Empty = connection default')}>
+                <input className="input-field" type="number" min={1} max={5000} value={s.pageSize ?? ''} onChange={(ev) => setSettings({ pageSize: ev.target.value })} />
+              </Field>
+              <Field label={t('sapMaxRecords', 'Max. records per run')} error={se.maxRecordsPerRun} hint={t('sapMaxRecordsHint', 'Optional; the next run continues from the cursor')}>
+                <input className="input-field" type="number" min={1} value={s.maxRecordsPerRun ?? ''} onChange={(ev) => setSettings({ maxRecordsPerRun: ev.target.value })} />
+              </Field>
+              <Field label={t('sapDefaultStatus', 'Status of new invoices')} error={e.defaultStatus}>
+                <select className="input-field" value={profile.defaultStatus} onChange={(ev) => onChange({ ...profile, defaultStatus: ev.target.value })}>
+                  {statuses.map((st) => <option key={st.code} value={st.code}>{st.name}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <h4 className="sap-subheading">{t('sapIncremental', 'Incremental synchronization')}</h4>
+            <div className="form-grid sap-grid-4">
+              <Field label={t('sapIncrementalField', 'Change timestamp field')} error={se.incrementalField} hint={t('sapIncrementalFieldHint', 'Empty = full extraction each run')}>
+                <input className="input-field" value={s.incrementalField || ''} placeholder="LastChangeDateTime" onChange={(ev) => setSettings({ incrementalField: ev.target.value })} />
+              </Field>
+              <Field label={t('sapIncrementalType', 'Field type')} error={se.incrementalFieldType}>
+                <select className="input-field" value={s.incrementalFieldType || 'DateTimeOffset'} disabled={!s.incrementalField} onChange={(ev) => setSettings({ incrementalFieldType: ev.target.value })}>
+                  {['DateTimeOffset', 'DateTime', 'Date', 'TimestampDecimal'].map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </Field>
+              <Field label={t('sapOverlap', 'Overlap (minutes)')} error={se.overlapMinutes} hint={t('sapOverlapHint', 'Re-read window before the cursor')}>
+                <input className="input-field" type="number" min={0} max={10080} value={s.overlapMinutes ?? 5} disabled={!s.incrementalField} onChange={(ev) => setSettings({ overlapMinutes: ev.target.value })} />
+              </Field>
+              <Field label={t('sapInitialFrom', 'Initial sync from')} error={e.initialFrom} hint={t('sapInitialFromHint', 'First run starts here')}>
+                <input className="input-field" type="date" value={profile.initialFrom ? profile.initialFrom.slice(0, 10) : ''}
+                  onChange={(ev) => onChange({ ...profile, initialFrom: ev.target.value ? `${ev.target.value}T00:00:00.000Z` : null })} />
+              </Field>
+            </div>
+    </>
+  );
+};
+
+const OB_OPERATORS = ['Equal', 'NotEqual', 'LessThan', 'LessThanEqual', 'GreaterThan', 'GreaterThanEqual'];
+
+/** OnBase: document types, keyword filters, document-date windows, PDF attachment. */
+const OnBaseQuerySettings = ({ profile, onChange, s, se, e, prefix, fieldErrors, setSettings, statuses }) => {
+  const { t } = useContext(LanguageContext);
+  const filters = s.keywordFilters || [];
+  const fe = errorsFor(fieldErrors, `${prefix}.settings.keywordFilters`);
+  const setFilter = (i, patch) => setSettings({ keywordFilters: filters.map((f, j) => (j === i ? { ...f, ...patch } : f)) });
+  return (
+    <>
+      <h4 className="sap-subheading">{t('onbaseDocumentQuery', 'OnBase document query')}</h4>
+      <div className="form-grid">
+        <Field label={t('onbaseDocumentTypes', 'Document types')} required error={se.documentTypes || se['documentTypes.0']}
+          hint={t('onbaseDocumentTypesHint', 'System names or numeric ids, comma separated')}>
+          <ListInput value={s.documentTypes || []} onChange={(v) => setSettings({ documentTypes: v })} placeholder="AP - Invoice, 101" />
+        </Field>
+        <Field label={t('sapDefaultStatus', 'Status of new invoices')} error={e.defaultStatus}>
+          <select className="input-field" value={profile.defaultStatus} onChange={(ev) => onChange({ ...profile, defaultStatus: ev.target.value })}>
+            {statuses.map((st) => <option key={st.code} value={st.code}>{st.name}</option>)}
+          </select>
+        </Field>
+      </div>
+      <div className="input-group">
+        <label>{t('onbaseKeywordFilters', 'Keyword filters')} <small className="sap-muted">({t('onbaseKeywordFiltersHint', 'combined with AND - e.g. Company Code = 1010')})</small></label>
+        {filters.length > 0 && (
+          <div className="sap-filter-table">
+            <div className="sap-filter-head sap-filter-head-3"><span>{t('onbaseKeyword', 'Keyword')}</span><span>{t('sapOperator', 'Operator')}</span><span>{t('value', 'Value')}</span><span /></div>
+            {filters.map((f, i) => (
+              <div key={i} className="sap-filter-row sap-filter-row-3">
+                <input className="input-field" value={f.keyword} placeholder="Company Code" aria-label={t('onbaseKeyword', 'Keyword')} onChange={(ev) => setFilter(i, { keyword: ev.target.value })} />
+                <select className="input-field" value={f.operator || 'Equal'} aria-label={t('sapOperator', 'Operator')} onChange={(ev) => setFilter(i, { operator: ev.target.value })}>
+                  {OB_OPERATORS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </select>
+                <input className="input-field" value={f.value} placeholder="1010" aria-label={t('value', 'Value')} onChange={(ev) => setFilter(i, { value: ev.target.value })} />
+                <button type="button" className="row-action danger" aria-label={t('remove', 'Remove')} onClick={() => setSettings({ keywordFilters: filters.filter((_, j) => j !== i) })}>
+                  <Trash2 size={14} />
+                </button>
+                {Object.entries(fe).filter(([k]) => k.startsWith(`${i}.`)).map(([k, m]) => <div key={k} className="sap-field-error sap-span-all">{m}</div>)}
+              </div>
+            ))}
+          </div>
+        )}
+        <div>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => setSettings({ keywordFilters: [...filters, { keyword: '', operator: 'Equal', value: '' }] })}>
+            <Plus size={14} /> {t('sapAddFilter', 'Add filter')}
+          </button>
+        </div>
+      </div>
+
+      <h4 className="sap-subheading">{t('sapIncremental', 'Incremental synchronization')}</h4>
+      <Toggle checked={s.incremental !== false} onChange={(v) => setSettings({ incremental: v })}
+        label={s.incremental !== false ? t('onbaseIncrementalOn', 'By document date, from the saved cursor') : t('onbaseIncrementalOff', 'Re-read the look-back period every run')} />
+      <div className="form-grid sap-grid-4" style={{ marginTop: '0.75rem' }}>
+        <Field label={t('onbaseOverlapDays', 'Overlap (days)')} error={se.overlapDays} hint={t('sapOverlapHint', 'Re-read window before the cursor')}>
+          <input className="input-field" type="number" min={0} max={30} value={s.overlapDays ?? 1} disabled={s.incremental === false} onChange={(ev) => setSettings({ overlapDays: ev.target.value })} />
+        </Field>
+        <Field label={t('onbaseLookbackDays', 'Look-back (days)')} error={se.lookbackDays} hint={t('onbaseLookbackHint', 'First run without cursor / initial date')}>
+          <input className="input-field" type="number" min={1} max={3650} value={s.lookbackDays ?? 30} onChange={(ev) => setSettings({ lookbackDays: ev.target.value })} />
+        </Field>
+        <Field label={t('onbaseWindowDays', 'Query window (days)')} error={se.windowDays} hint={t('onbaseWindowHint', 'Split automatically at the result limit')}>
+          <input className="input-field" type="number" min={1} max={366} value={s.windowDays ?? 7} onChange={(ev) => setSettings({ windowDays: ev.target.value })} />
+        </Field>
+        <Field label={t('sapInitialFrom', 'Initial sync from')} error={e.initialFrom} hint={t('sapInitialFromHint', 'First run starts here')}>
+          <input className="input-field" type="date" value={profile.initialFrom ? profile.initialFrom.slice(0, 10) : ''}
+            onChange={(ev) => onChange({ ...profile, initialFrom: ev.target.value ? `${ev.target.value}T00:00:00.000Z` : null })} />
+        </Field>
+      </div>
+      <div className="form-grid">
+        <Field label={t('onbaseBatchSize', 'Documents per batch')} error={se.pageSize} hint={t('onbaseBatchHint', 'Saved together; keywords are read per document')}>
+          <input className="input-field" type="number" min={1} max={500} value={s.pageSize ?? 50} onChange={(ev) => setSettings({ pageSize: ev.target.value })} />
+        </Field>
+        <div className="input-group">
+          <label>{t('onbaseAttach', 'Document file')}</label>
+          <Toggle checked={s.attachDocuments !== false} onChange={(v) => setSettings({ attachDocuments: v })}
+            label={s.attachDocuments !== false ? t('onbaseAttachOn', 'Attach the OnBase document as the invoice PDF') : t('onbaseAttachOff', 'Import keyword data only')} />
+        </div>
+      </div>
+    </>
+  );
+};
+
+const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldErrors, statuses, onResetCursor, template, providerType }) => {
   const { t } = useContext(LanguageContext);
   const [open, setOpen] = useState(!profile.id);
   const s = profile.settings || {};
@@ -121,6 +264,8 @@ const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldError
   const rule = profile.cancellationRule;
   const setRule = (patch) => onChange({ ...profile, cancellationRule: { ...rule, ...patch } });
   const app = APPS.find((a) => a.id === profile.moduleSlug);
+  const isOnBase = providerType === 'onbase-rest';
+  const queryProps = { profile, onChange, s, se, e, prefix, fieldErrors, setSettings, statuses };
 
   return (
     <div className={`glass-panel sap-profile ${errorCount ? 'has-error' : ''}`}>
@@ -171,64 +316,12 @@ const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldError
             </div>
           </div>
 
-          <h4 className="sap-subheading">{t('sapODataQuery', 'OData query')}</h4>
-          <div className="form-grid sap-grid-3">
-            <Field label={t('sapEntitySet', 'Entity set')} required error={se.entitySet}>
-              <input className="input-field" value={s.entitySet || ''} placeholder="A_SupplierInvoice" onChange={(ev) => setSettings({ entitySet: ev.target.value })} />
-            </Field>
-            <Field label="$select" error={se.select} hint={t('sapSelectHint', 'Empty = all properties')}>
-              <input className="input-field" value={s.select || ''} placeholder="SupplierInvoice,FiscalYear,..." onChange={(ev) => setSettings({ select: ev.target.value })} />
-            </Field>
-            <Field label="$expand" error={se.expand}>
-              <input className="input-field" value={s.expand || ''} placeholder="to_Supplier" onChange={(ev) => setSettings({ expand: ev.target.value })} />
-            </Field>
-          </div>
-          <FiltersEditor filters={s.filters || []} onChange={(filters) => setSettings({ filters })} errors={errorsFor(fieldErrors, `${prefix}.settings.filters`)} />
-          <div className="form-grid">
-            <Field label={`${t('sapCustomFilter', 'Advanced $filter')}`} error={se.customFilter} hint={t('sapCustomFilterHint', 'Raw OData expression added with AND, e.g. InvoiceGrossAmount gt 0')}>
-              <input className="input-field" value={s.customFilter || ''} onChange={(ev) => setSettings({ customFilter: ev.target.value })} />
-            </Field>
-            <Field label="$orderby" error={se.orderBy} hint={s.incrementalField ? t('sapOrderByIncremental', 'Ignored: incremental profiles read by change time') : t('sapOrderByHint', 'Default: key fields ascending')}>
-              <input className="input-field" value={s.orderBy || ''} disabled={!!s.incrementalField} placeholder="PostingDate asc" onChange={(ev) => setSettings({ orderBy: ev.target.value })} />
-            </Field>
-          </div>
-          <div className="form-grid sap-grid-3">
-            <Field label={t('sapProfilePageSize', 'Page size ($top)')} error={se.pageSize} hint={t('sapPageSizeHint', 'Empty = connection default')}>
-              <input className="input-field" type="number" min={1} max={5000} value={s.pageSize ?? ''} onChange={(ev) => setSettings({ pageSize: ev.target.value })} />
-            </Field>
-            <Field label={t('sapMaxRecords', 'Max. records per run')} error={se.maxRecordsPerRun} hint={t('sapMaxRecordsHint', 'Optional; the next run continues from the cursor')}>
-              <input className="input-field" type="number" min={1} value={s.maxRecordsPerRun ?? ''} onChange={(ev) => setSettings({ maxRecordsPerRun: ev.target.value })} />
-            </Field>
-            <Field label={t('sapDefaultStatus', 'Status of new invoices')} error={e.defaultStatus}>
-              <select className="input-field" value={profile.defaultStatus} onChange={(ev) => onChange({ ...profile, defaultStatus: ev.target.value })}>
-                {statuses.map((st) => <option key={st.code} value={st.code}>{st.name}</option>)}
-              </select>
-            </Field>
-          </div>
-
-          <h4 className="sap-subheading">{t('sapIncremental', 'Incremental synchronization')}</h4>
-          <div className="form-grid sap-grid-4">
-            <Field label={t('sapIncrementalField', 'Change timestamp field')} error={se.incrementalField} hint={t('sapIncrementalFieldHint', 'Empty = full extraction each run')}>
-              <input className="input-field" value={s.incrementalField || ''} placeholder="LastChangeDateTime" onChange={(ev) => setSettings({ incrementalField: ev.target.value })} />
-            </Field>
-            <Field label={t('sapIncrementalType', 'Field type')} error={se.incrementalFieldType}>
-              <select className="input-field" value={s.incrementalFieldType || 'DateTimeOffset'} disabled={!s.incrementalField} onChange={(ev) => setSettings({ incrementalFieldType: ev.target.value })}>
-                {['DateTimeOffset', 'DateTime', 'Date', 'TimestampDecimal'].map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </Field>
-            <Field label={t('sapOverlap', 'Overlap (minutes)')} error={se.overlapMinutes} hint={t('sapOverlapHint', 'Re-read window before the cursor')}>
-              <input className="input-field" type="number" min={0} max={10080} value={s.overlapMinutes ?? 5} disabled={!s.incrementalField} onChange={(ev) => setSettings({ overlapMinutes: ev.target.value })} />
-            </Field>
-            <Field label={t('sapInitialFrom', 'Initial sync from')} error={e.initialFrom} hint={t('sapInitialFromHint', 'First run starts here')}>
-              <input className="input-field" type="date" value={profile.initialFrom ? profile.initialFrom.slice(0, 10) : ''}
-                onChange={(ev) => onChange({ ...profile, initialFrom: ev.target.value ? `${ev.target.value}T00:00:00.000Z` : null })} />
-            </Field>
-          </div>
+          {isOnBase ? <OnBaseQuerySettings {...queryProps} /> : <SapQuerySettings {...queryProps} />}
 
           <h4 className="sap-subheading">{t('sapIdentity', 'Duplicate prevention and invoice id')}</h4>
           <div className="form-grid">
-            <Field label={t('sapKeyFields', 'Key fields')} required error={e.keyFields || e['keyFields.0']} hint={t('sapKeyFieldsHint', 'Uniquely identify a document in SAP (comma separated)')}>
-              <ListInput value={profile.keyFields} onChange={(v) => onChange({ ...profile, keyFields: v })} placeholder="CompanyCode, FiscalYear, SupplierInvoice" />
+            <Field label={t('sapKeyFields', 'Key fields')} required error={e.keyFields || e['keyFields.0']} hint={isOnBase ? t('onbaseKeyFieldsHint', 'documentId = the OnBase document handle (recommended)') : t('sapKeyFieldsHint', 'Uniquely identify a document in SAP (comma separated)')}>
+              <ListInput value={profile.keyFields} onChange={(v) => onChange({ ...profile, keyFields: v })} placeholder={isOnBase ? 'documentId' : 'CompanyCode, FiscalYear, SupplierInvoice'} />
             </Field>
             <Field label={t('sapInvoiceIdTemplate', 'Invoice id template')} required error={e.invoiceCodeTemplate}
               hint={t('sapInvoiceIdTemplateHint', '{prefix} = application prefix; {Field} = SAP value; max 60 characters')}>
@@ -267,7 +360,10 @@ const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldError
           )}
 
           <MappingTable mapping={profile.fieldMapping || {}} onChange={(fieldMapping) => onChange({ ...profile, fieldMapping })} catalog={catalog}
-            errors={errorsFor(fieldErrors, `${prefix}.fieldMapping`)} />
+            errors={errorsFor(fieldErrors, `${prefix}.fieldMapping`)}
+            hint={isOnBase
+              ? t('onbaseFieldMappingHint', 'keywords/<Keyword_Name> (spaces become _), documentDate, documentName or documentId - Test connection lists the keywords of a sample document')
+              : t('sapFieldMappingHint', 'SAP property path, e.g. TaxNumber1 or to_Supplier/TaxNumber1')} />
         </div>
       )}
     </div>
@@ -294,7 +390,7 @@ const ExtractionTab = ({ form, update, fieldErrors, catalog, onResetCursor }) =>
               <Copy size={14} /> {tpl.name}
             </button>
           ))}
-          <button type="button" className="btn btn-outline" onClick={() => setProfiles([...form.profiles, blankProfile()])}>
+          <button type="button" className="btn btn-outline" onClick={() => setProfiles([...form.profiles, blankProfile(form.providerType)])}>
             <Plus size={14} /> {t('sapBlankProfile', 'Blank profile')}
           </button>
         </div>
@@ -315,6 +411,7 @@ const ExtractionTab = ({ form, update, fieldErrors, catalog, onResetCursor }) =>
           onChange={(next) => setProfiles(form.profiles.map((x, j) => (j === i ? next : x)))}
           onRemove={() => setProfiles(form.profiles.filter((_, j) => j !== i))}
           onResetCursor={setResetting}
+          providerType={form.providerType}
         />
       ))}
       {resetting && (

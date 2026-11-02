@@ -27,7 +27,7 @@ const getInitials = (name = '') =>
     .map((part) => part[0].toUpperCase())
     .join('') || '?';
 
-/** One collapsible menu section ("Settings" > Users / Configuration / SAP Configuration). */
+/** One collapsible menu section ("Settings" > Users / Configuration / SAP / OnBase Configuration). */
 const NavSection = ({ icon: Icon, label, basePath, active, children }) => {
   const [open, setOpen] = useState(active);
 
@@ -85,7 +85,7 @@ const GlobalLayout = () => {
         <div className="top-header-brand">
           <img src={cargillLogo} alt="Cargill" />
           <span className="top-header-divider" />
-          {t('app_title', 'Invoice Processing')}
+          {t('app_title', 'LATAM Invoice Workflow')}
         </div>
 
         <div className="top-header-actions">
@@ -142,6 +142,7 @@ const GlobalLayout = () => {
                 <SubItem to="/settings/users" label={t('usersMenu', 'Users')} />
                 <SubItem to="/settings/configuration" label={t('configurationMenu', 'Configuration')} />
                 <SubItem to="/settings/sap-configuration" label={t('sapConfigurationMenu', 'SAP Configuration')} />
+                <SubItem to="/settings/onbase-configuration" label={t('onbaseConfigurationMenu', 'OnBase Configuration')} />
               </NavSection>
             )}
           </nav>

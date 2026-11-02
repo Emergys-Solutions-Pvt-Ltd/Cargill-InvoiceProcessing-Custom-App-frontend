@@ -16,8 +16,8 @@ import InvoiceDetails from './pages/app/InvoiceDetails';
 import TeamAssignment from './pages/app/TeamAssignment';
 import Users from './pages/settings/Users';
 import Configuration from './pages/settings/Configuration';
-import SapConfiguration from './pages/settings/sap/SapConfiguration';
-import SapIntegrationDetail from './pages/settings/sap/SapIntegrationDetail';
+import IntegrationList from './pages/settings/integrations/IntegrationList';
+import IntegrationDetail from './pages/settings/integrations/IntegrationDetail';
 import { APPS } from './utils/appHelper';
 
 const SmartRedirect = () => {
@@ -60,15 +60,18 @@ function App() {
                   </Route>
                 ))}
 
-                {/* Settings (Admin Role Required): Users + Configuration (master data) + SAP Configuration (integrations) */}
+                {/* Settings (Admin Role Required): Users + Configuration (master data) + SAP / OnBase Configuration (integrations) */}
                 <Route path="settings" element={<AuthRoute requireAdmin={true} />}>
                   <Route index element={<Navigate to="users" replace />} />
                   <Route path="users" element={<Users />} />
                   <Route path="configuration" element={<Configuration />} />
                   <Route path="configuration/:entity" element={<Configuration />} />
-                  <Route path="sap-configuration" element={<SapConfiguration />} />
-                  <Route path="sap-configuration/:id" element={<SapIntegrationDetail />} />
-                  <Route path="sap-configuration/:id/:tab" element={<SapIntegrationDetail />} />
+                  <Route path="sap-configuration" element={<IntegrationList providerType="sap-odata" />} />
+                  <Route path="sap-configuration/:id" element={<IntegrationDetail providerType="sap-odata" />} />
+                  <Route path="sap-configuration/:id/:tab" element={<IntegrationDetail providerType="sap-odata" />} />
+                  <Route path="onbase-configuration" element={<IntegrationList providerType="onbase-rest" />} />
+                  <Route path="onbase-configuration/:id" element={<IntegrationDetail providerType="onbase-rest" />} />
+                  <Route path="onbase-configuration/:id/:tab" element={<IntegrationDetail providerType="onbase-rest" />} />
                 </Route>
               </Route>
 

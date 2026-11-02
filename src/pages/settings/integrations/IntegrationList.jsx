@@ -4,12 +4,13 @@ import { AlertCircle, Plus, RefreshCw, Server, ChevronRight, Clock, CheckCircle2
 import { apiClient } from '../../../services/network.service';
 import { LanguageContext } from '../../../context/LanguageContext';
 import { APPS } from '../../../utils/appHelper';
-import { StatusBadge, apiError, formatDateTime } from './sapUi';
+import { StatusBadge, apiError, formatDateTime, providerUi } from './integrationUi';
 
-/** Settings > SAP Configuration: configured SAP integrations with their synchronization status. */
-const SapConfiguration = () => {
+/** Settings > SAP / OnBase Configuration: integrations of one provider with their synchronization status. */
+const IntegrationList = ({ providerType }) => {
   const { t } = useContext(LanguageContext);
   const navigate = useNavigate();
+  const ui = providerUi(providerType);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,14 +20,14 @@ const SapConfiguration = () => {
     let alive = true;
     setLoading(true);
     apiClient
-      .get('/integrations', { params: { providerType: 'sap-odata' } })
+      .get('/integrations', { params: { providerType } })
       .then((r) => alive && (setItems(r.data), setError('')))
       .catch((err) => alive && setError(apiError(err, 'Failed to load integrations').message))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, providerType]);
 
   const appName = (slug) => {
     const app = APPS.find((a) => a.id === slug);
@@ -37,16 +38,14 @@ const SapConfiguration = () => {
     <div>
       <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap' }}>
         <div>
-          <h1 className="page-title">{t('sapConfigurationMenu', 'SAP Configuration')}</h1>
-          <p className="page-subtitle">
-            {t('sapConfigurationSubtitle', 'Connect SAP OData services and synchronize their invoices into General Payments and SJO invoice processing.')}
-          </p>
+          <h1 className="page-title">{t(ui.titleKey, ui.title)}</h1>
+          <p className="page-subtitle">{t(ui.subtitleKey, ui.subtitle)}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.6rem' }}>
           <button type="button" className="btn btn-outline" onClick={() => setReloadKey((k) => k + 1)} disabled={loading}>
             <RefreshCw size={15} className={loading ? 'spin' : ''} /> {t('refresh', 'Refresh')}
           </button>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/settings/sap-configuration/new')}>
+          <button type="button" className="btn btn-primary" onClick={() => navigate(`${ui.basePath}/new`)}>
             <Plus size={15} /> {t('sapNewIntegration', 'New integration')}
           </button>
         </div>
@@ -59,9 +58,9 @@ const SapConfiguration = () => {
       ) : items.length === 0 && !error ? (
         <div className="glass-panel sap-empty">
           <Server size={28} />
-          <h3>{t('sapNoIntegrations', 'No SAP integration yet')}</h3>
-          <p>{t('sapNoIntegrationsHint', 'Create an integration with the SAP system URL, credentials and what to extract for General Payments and SJO.')}</p>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/settings/sap-configuration/new')}>
+          <h3>{t(ui.emptyTitleKey, ui.emptyTitle)}</h3>
+          <p>{t(ui.emptyHintKey, ui.emptyHint)}</p>
+          <button type="button" className="btn btn-primary" onClick={() => navigate(`${ui.basePath}/new`)}>
             <Plus size={15} /> {t('sapNewIntegration', 'New integration')}
           </button>
         </div>
@@ -72,7 +71,7 @@ const SapConfiguration = () => {
               type="button"
               key={item.id}
               className="glass-panel sap-integration-card"
-              onClick={() => navigate(`/settings/sap-configuration/${item.id}/dashboard`)}
+              onClick={() => navigate(`${ui.basePath}/${item.id}/dashboard`)}
             >
               <div className="sap-card-main">
                 <div className="sap-card-title">
@@ -111,4 +110,4 @@ const SapConfiguration = () => {
   );
 };
 
-export default SapConfiguration;
+export default IntegrationList;

@@ -1711,3 +1711,8 @@ button.cell-link { background: none; border: none; padding: 0; font: inherit; }
 @media (max-width: 560px) {
   .sap-grid-3, .sap-grid-4, .sap-history-filters { grid-template-columns: 1fr; }
 }
+
+.sap-filter-head-3, .sap-filter-row-3 { grid-template-columns: 1.4fr 1fr 1.4fr 32px; }
+@media (max-width: 900px) { .sap-filter-head-3 { display: none; } .sap-filter-row-3 { grid-template-columns: 1fr 1fr; } }
+.sap-keyword-table { width: 100%; margin: 0.5rem 0 1rem; font-size: 0.8rem; border-collapse: collapse; }
+.sap-keyword-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border-color); }
