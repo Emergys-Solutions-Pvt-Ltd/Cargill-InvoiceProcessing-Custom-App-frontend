@@ -16,7 +16,8 @@ const PLURALS = {
   'business-units': 'Business Units',
   teams: 'Teams (Queues)',
   statuses: 'Statuses',
-  processes: 'Processes'
+  processes: 'Processes',
+  'erp-systems': 'ERP Systems'
 };
 
 const COLORS = ['warning', 'info', 'success', 'danger', 'neutral'];

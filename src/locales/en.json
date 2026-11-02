@@ -446,5 +446,21 @@
   "onbaseConfigurationSubtitle": "Connect Hyland OnBase and import invoice documents (keywords + PDF) into General Payments and SJO invoice processing.",
   "onbaseNoIntegrations": "No OnBase integration yet",
   "onbaseNoIntegrationsHint": "Create an integration with the Hyland API Server URL, the IdP integration user and the invoice document types to import.",
-  "sapAuth_hyland-idp-password": "Hyland IdP (OnBase)"
+  "sapAuth_hyland-idp-password": "Hyland IdP (OnBase)",
+  "country": "Country",
+  "businessUnit": "BU",
+  "erp": "ERP",
+  "idFiscal": "ID Fiscal",
+  "abNumber": "A.B. Number",
+  "abName": "A.B. Name",
+  "assignTo": "Assign To",
+  "flowTurnDown": "Flow Turn Down",
+  "criticalVendor": "Critical Vendor",
+  "urgentInvoice": "Urgent Invoice",
+  "flags": "Flags",
+  "sjoInvoiceFields": "SJO invoice",
+  "requiredFieldsMissing": "Fill in the required fields",
+  "createInvoiceFailed": "Failed to create the invoice",
+  "rows": "rows",
+  "config_erp_systems": "ERP Systems"
 }

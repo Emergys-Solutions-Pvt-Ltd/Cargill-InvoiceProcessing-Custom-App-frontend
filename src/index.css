@@ -371,6 +371,42 @@ button, input, select, textarea {
   overflow-wrap: anywhere;
 }
 
+/* SJO invoice fields: Create modal grid and the Flow Turn Down / Critical Vendor / Urgent Invoice row */
+.sjo-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .sjo-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sjo-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.sjo-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.sjo-flag input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--primary-color);
+}
+
 .su-section-title {
   margin: 1rem 1.25rem 0;
   padding-top: 0.9rem;

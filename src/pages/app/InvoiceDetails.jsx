@@ -9,14 +9,22 @@ import InvoicePdfViewer from '../../components/InvoicePdfViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { Field, ReadOnly } from '../../components/FormField';
 import CcppTab from '../../components/CcppTab';
+import {
+  SjoFieldInputs, SjoFlagInputs, sjoFormFrom, emptySjoForm, missingSjoFields, useSjoOptions
+} from '../../components/SjoInvoiceFields';
 
+const isSjoInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'SJO';
+const SJO_KEYS = Object.keys(emptySjoForm());
+
+// SJO invoices also edit their SJO fields (country, BU, ERP, ID Fiscal, A.B., flags) in the same form
 const toForm = (invoice) => ({
   originCityId: invoice.origin?.id ?? '',
   destinationCityId: invoice.destination?.id ?? '',
   processId: invoice.process?.id ?? '',
   claimNumber: invoice.claimNumber ?? '0.00',
   additionalInfo: invoice.additionalInfo ?? '',
-  assignedUserId: invoice.assignedUser?.id ?? ''
+  assignedUserId: invoice.assignedUser?.id ?? '',
+  ...(isSjoInvoice(invoice) ? sjoFormFrom(invoice.sjoFields) : {})
 });
 
 // sfFields' date columns arrive as raw ISO 8601 (backend doesn't reformat them, unlike the rest
@@ -196,15 +204,29 @@ const InvoiceDetails = () => {
     apiClient.get(`/apps/${appId}/users`).then((r) => setAssignees(r.data)).catch(() => setAssignees([]));
   }, [appId]);
 
-  const dirty = useMemo(() => {
-    if (!invoice || !form) return false;
+  const sjo = isSjoInvoice(invoice);
+  const sjoOptions = useSjoOptions(sjo);
+
+  const changedKeys = useMemo(() => {
+    if (!invoice || !form) return [];
     const original = toForm(invoice);
-    return Object.keys(form).some((key) => String(form[key] ?? '') !== String(original[key] ?? ''));
+    return Object.keys(form).filter((key) => String(form[key] ?? '') !== String(original[key] ?? ''));
   }, [invoice, form]);
+  const dirty = changedKeys.length > 0;
 
   const set = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
   const handleSave = async () => {
+    // SJO fields are only sent when one of them changed, so older SJO invoices without them
+    // can still save the other fields; once edited, the required ones must be complete.
+    const sjoChanged = sjo && changedKeys.some((key) => SJO_KEYS.includes(key));
+    if (sjoChanged) {
+      const missing = missingSjoFields(form, t);
+      if (missing.length > 0) {
+        showNotice(false, `${t('requiredFieldsMissing', 'Fill in the required fields')}: ${missing.join(', ')}`);
+        return;
+      }
+    }
     setSaving(true);
     try {
       const response = await apiClient.put(`/invoices/${encodeURIComponent(invoice.id)}/details`, {
@@ -213,7 +235,20 @@ const InvoiceDetails = () => {
         destinationCityId: form.destinationCityId || null,
         claimNumber: Number(form.claimNumber) || 0,
         additionalInfo: form.additionalInfo || null,
-        assignedUserId: form.assignedUserId || null
+        assignedUserId: form.assignedUserId || null,
+        ...(sjoChanged ? {
+          sjoFields: {
+            countryId: Number(form.countryId),
+            businessUnitId: Number(form.businessUnitId),
+            erpSystemId: Number(form.erpSystemId),
+            idFiscal: form.idFiscal,
+            abNumber: form.abNumber || null,
+            abName: form.abName || null,
+            flowTurnDown: form.flowTurnDown,
+            criticalVendor: form.criticalVendor,
+            urgentInvoice: form.urgentInvoice
+          }
+        } : {})
       });
       applyInvoice(response.data.data);
       showNotice(true, response.data.message);
@@ -272,13 +307,16 @@ const InvoiceDetails = () => {
           >
             {t('details', 'Details')}
           </button>
-          <button
-            type="button"
-            className={`tab-link ${activeTab === 'ccpp' ? 'active' : ''}`}
-            onClick={() => setActiveTab('ccpp')}
-          >
-            {t('ccpp', 'CCPP')}
-          </button>
+          {/* CCPP is a General Payments record; SJO shows only its own fields */}
+          {!sjo && (
+            <button
+              type="button"
+              className={`tab-link ${activeTab === 'ccpp' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ccpp')}
+            >
+              {t('ccpp', 'CCPP')}
+            </button>
+          )}
         </div>
         {activeTab === 'ccpp' && (
           <button type="button" className="btn btn-primary" style={{ marginBottom: '0.4rem' }} onClick={() => ccppTabRef.current?.openAdd()}>
@@ -301,11 +339,37 @@ const InvoiceDetails = () => {
         <fieldset className="su-fieldset">
           <legend>{roleLabel}</legend>
 
-          <div className="su-header">
-            <div title={invoice.id}>{invoice.invoiceNumber}</div>
-            <div>{invoice.process?.name || t('noProcess', 'No process')}</div>
-          </div>
+          {sjo ? (
+            <div className="su-header">
+              <div>{invoice.id}</div>
+            </div>
+          ) : (
+            <div className="su-header">
+              <div title={invoice.id}>{invoice.invoiceNumber}</div>
+              <div>{invoice.process?.name || t('noProcess', 'No process')}</div>
+            </div>
+          )}
 
+          {/* SJO: only the SJO fields (Invoice ID, Assign To, flags, Country, BU, ERP, ID Fiscal, A.B. Number / Name) */}
+          {sjo ? (
+            <div className="su-body">
+              <div className="su-grid">
+                <Field label={t('invoiceId', 'Invoice ID')}><ReadOnly value={invoice.id} /></Field>
+                <Field label={t('assignTo', 'Assign To')}>
+                  <select className="input-field" value={form.assignedUserId} onChange={set('assignedUserId')}>
+                    <option value="">--{t('none', 'None')}--</option>
+                    {assigneeOptions.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                </Field>
+              </div>
+              <div style={{ padding: '0 1.25rem' }}>
+                <SjoFlagInputs form={form} onChange={setForm} />
+              </div>
+              <div className="su-grid">
+                <SjoFieldInputs form={form} onChange={setForm} options={sjoOptions} current={invoice.sjoFields} />
+              </div>
+            </div>
+          ) : (
           <div className="su-body">
             <div className="su-grid">
               <Field label={t('origin', 'Origin')}>
@@ -427,6 +491,7 @@ const InvoiceDetails = () => {
               </Field>
             </div>
           </div>
+          )}
 
           <div className="su-footer">
             <button type="button" className="btn btn-outline" onClick={() => setForm(toForm(invoice))} disabled={!dirty || saving}>

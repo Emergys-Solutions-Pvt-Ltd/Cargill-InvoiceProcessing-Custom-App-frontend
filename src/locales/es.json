@@ -446,5 +446,21 @@
   "onbaseConfigurationSubtitle": "Conecte Hyland OnBase e importe documentos de factura (palabras clave + PDF) a Pagos Generales y al procesamiento de facturas SJO.",
   "onbaseNoIntegrations": "Todavía no hay integraciones OnBase",
   "onbaseNoIntegrationsHint": "Cree una integración con la URL del Hyland API Server, el usuario de integración del IdP y los tipos de documento de factura a importar.",
-  "sapAuth_hyland-idp-password": "Hyland IdP (OnBase)"
+  "sapAuth_hyland-idp-password": "Hyland IdP (OnBase)",
+  "country": "País",
+  "businessUnit": "UN",
+  "erp": "ERP",
+  "idFiscal": "ID Fiscal",
+  "abNumber": "Número A.B.",
+  "abName": "Nombre A.B.",
+  "assignTo": "Asignar a",
+  "flowTurnDown": "Flujo rechazado",
+  "criticalVendor": "Proveedor crítico",
+  "urgentInvoice": "Factura urgente",
+  "flags": "Indicadores",
+  "sjoInvoiceFields": "Factura SJO",
+  "requiredFieldsMissing": "Complete los campos obligatorios",
+  "createInvoiceFailed": "No se pudo crear la factura",
+  "rows": "filas",
+  "config_erp_systems": "Sistemas ERP"
 }
