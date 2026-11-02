@@ -1,12 +1,14 @@
-import React, { useCallback, useContext, useEffect, useId, useMemo, useState } from 'react';
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Undo2, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useOutletContext, useParams } from 'react-router-dom';
+import { Save, Undo2, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { apiClient } from '../../services/network.service';
 import { AuthContext } from '../../context/AuthContext';
 import { LanguageContext } from '../../context/LanguageContext';
 import { useStatuses } from '../../services/statuses';
 import InvoicePdfViewer from '../../components/InvoicePdfViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import { Field, ReadOnly } from '../../components/FormField';
+import CcppTab from '../../components/CcppTab';
 
 const toForm = (invoice) => ({
   originCityId: invoice.origin?.id ?? '',
@@ -17,18 +19,120 @@ const toForm = (invoice) => ({
   assignedUserId: invoice.assignedUser?.id ?? ''
 });
 
-/** Label + control; the label is linked to the control (id / htmlFor) for screen readers and clicks. */
-const Field = ({ label, children }) => {
-  const id = useId();
-  return (
-    <div className="su-field">
-      <label htmlFor={id}>{label}</label>
-      {React.cloneElement(children, { id })}
-    </div>
-  );
+// sfFields' date columns arrive as raw ISO 8601 (backend doesn't reformat them, unlike the rest
+// of Invoice Detail) — format client-side so they match the house display style.
+const DATE_ONLY_SF_FIELDS = new Set(['caeExpirationDate', 'dueDateInvoice']);
+const formatSfDate = (key, value) => {
+  if (!value) return value;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return DATE_ONLY_SF_FIELDS.has(key)
+    ? d.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
+    : d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
-const ReadOnly = ({ id, value }) => <output id={id} className="su-readonly">{value || '–'}</output>;
+/**
+ * Legacy Salesforce "GP Invoice" fields (../shared/handoffs/database.md, 2026-11-02) — read-only
+ * until a write path exists. Sourced from `invoice.sfFields` (camelCase of the DB's
+ * `app.invoice_sf_fields` satellite table); NULL/missing until that row/route exists, which
+ * ReadOnly already renders as '–'.
+ */
+const SF_FIELD_GROUPS = [
+  {
+    title: 'Identifiers & References',
+    fields: [
+      ['invoice1a2aCancel', '1° and 2° Invoice Number Cancel'],
+      ['firstInvoiceNumberCancel', '1° Invoice Number Cancel'],
+      ['secondInvoiceNumberCancel', '2° Invoice Number Cancel'],
+      ['abNumber', 'A.B. Number'],
+      ['accountingRegister', 'Accounting Register'],
+      ['codeOfImputation', 'Code of Imputation'],
+      ['codeOfImputationStr', 'Code of Imputation (Str)'],
+      ['gpCodeOfImputation', 'GP Code of Imputation'],
+      ['costCenter', 'Cost Center'],
+      ['jdeNumber', 'JDE Number'],
+      ['nroDeO6', 'Nro de O6'],
+      ['poNumber', 'PO Number'],
+      ['x1Number', 'X1 Number'],
+      ['ownerLegacyId', 'Owner'],
+      ['userLegacyId', 'User'],
+      ['rosCuitLegacyId', 'CUIT (ROS CUIT Lookup)']
+    ]
+  },
+  {
+    title: 'Codes & Classification',
+    fields: [
+      ['adjustmentApproval', 'Aprobacion Ajuste'],
+      ['branchPlant', 'Branch Plant'],
+      ['center', 'Center'],
+      ['codeType', 'Code Type'],
+      ['drei', 'D.R.E.I.'],
+      ['adjustmentDoc', 'Doc Ajuste'],
+      ['installmentPayment', 'Inst Payment'],
+      ['invoiceType', 'Invoice Type'],
+      ['orderType', 'Order Type'],
+      ['pendingReason', 'Pending Reason'],
+      ['rejectReason', 'Reject Reason'],
+      ['subProcess', 'Sub Process'],
+      ['producto', 'Producto']
+    ]
+  },
+  {
+    title: 'Notes & Observations',
+    fields: [
+      ['area', 'Area'],
+      ['cbsObservation', 'CBS Observation'],
+      ['computationFormula', 'Computation Formula'],
+      ['expenseType', 'Expense Type'],
+      ['adminObservation', 'Admin Observation'],
+      ['approvalObservation', 'Approval Observation'],
+      ['attachmentNameBeforeChange', 'Attachment Name Before Change'],
+      ['creditNoteComments', 'Credit Note Comments'],
+      ['distributionType', 'Distribution Type'],
+      ['notes', 'Notes'],
+      ['observation', 'Observation'],
+      ['rejectObservation', 'Reject Observation'],
+      ['clientEmail', 'Client Email'],
+      ['description', 'Description']
+    ]
+  },
+  {
+    title: 'Legacy Dates',
+    fields: [
+      ['adminApprovedDate', 'Admin Approved Date'],
+      ['approvalDate', 'Approval Date'],
+      ['caeExpirationDate', 'CAE Expiration Date'],
+      ['processedDate', 'Processed Date'],
+      ['rejectionDate', 'Rejection Date'],
+      ['dueDateInvoice', 'Due Date Invoice']
+    ]
+  },
+  {
+    title: 'Legacy Amounts',
+    fields: [
+      ['caeNumber', 'CAE Number'],
+      ['exchangeRate', 'Exchange Rate'],
+      ['paymentTerm', 'Payment Term'],
+      ['cantidad', 'Cantidad']
+    ]
+  },
+  {
+    title: 'Flags',
+    boolean: true,
+    fields: [
+      ['isBoortmalInvoice', 'Boortmal Invoice'],
+      ['buEmployeeApproverDone', 'BU Employee Approver Done'],
+      ['isDistribution', 'Distribution'],
+      ['isDownloadedInvoice', 'Downloaded Invoice'],
+      ['hasPo', 'Have PO'],
+      ['isHighPriority', 'High Priority'],
+      ['isInvoicePaid', 'Invoice Paid'],
+      ['needApproval', 'Need Approval'],
+      ['poAttached', 'PO Attached'],
+      ['vipControlDone', 'VIP Control Done']
+    ]
+  }
+];
 
 /**
  * Page 2 of every app: Invoice Details.
@@ -38,11 +142,10 @@ const ReadOnly = ({ id, value }) => <output id={id} className="su-readonly">{val
  */
 const InvoiceDetails = () => {
   const { invoiceId } = useParams();
-  const { appId, appName } = useOutletContext() || {};
+  const { appId } = useOutletContext() || {};
   const { user } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const statuses = useStatuses();
-  const navigate = useNavigate();
 
   const [invoice, setInvoice] = useState(null);
   const [form, setForm] = useState(null);
@@ -54,6 +157,8 @@ const InvoiceDetails = () => {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null); // { ok, message }
   const [confirmSendBack, setConfirmSendBack] = useState(false);
+  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'ccpp'
+  const ccppTabRef = useRef(null);
 
   const showNotice = (ok, message) => {
     setNotice({ ok, message });
@@ -154,20 +259,43 @@ const InvoiceDetails = () => {
   const roleLabel = (user?.role || '').toLowerCase() === 'admin' ? t('roleAdmin', 'Admin') : t('roleUser', 'User');
   const statusLabel = statuses.find((s) => s.code === invoice.status)?.name || invoice.status;
   const cityLabel = (c) => c.name;
+  const sfFields = invoice.sfFields || {};
 
   return (
     <div>
-      <div className="flex-between" style={{ marginBottom: '0.9rem', gap: '1rem', flexWrap: 'wrap' }}>
-        <button type="button" className="btn btn-outline" onClick={() => navigate(`/app/${appId}/invoices`)}>
-          <ArrowLeft size={15} /> {t('backToInvoicesOf', 'Back to {app} invoices').replace('{app}', appName || '')}
-        </button>
-        {notice && (
-          <div className={notice.ok ? 'form-success' : 'form-error'} style={{ margin: 0 }}>
-            {notice.ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />} {notice.message}
-          </div>
+      <div className="tab-bar" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex' }}>
+          <button
+            type="button"
+            className={`tab-link ${activeTab === 'details' ? 'active' : ''}`}
+            onClick={() => setActiveTab('details')}
+          >
+            {t('details', 'Details')}
+          </button>
+          <button
+            type="button"
+            className={`tab-link ${activeTab === 'ccpp' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ccpp')}
+          >
+            {t('ccpp', 'CCPP')}
+          </button>
+        </div>
+        {activeTab === 'ccpp' && (
+          <button type="button" className="btn btn-primary" style={{ marginBottom: '0.4rem' }} onClick={() => ccppTabRef.current?.openAdd()}>
+            <Plus size={15} /> {t('addCcppEntry', 'Add New Entry')}
+          </button>
         )}
       </div>
 
+      {notice && (
+        <div className={notice.ok ? 'form-success' : 'form-error'} style={{ margin: '0 0 0.9rem' }}>
+          {notice.ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />} {notice.message}
+        </div>
+      )}
+
+      {activeTab === 'ccpp' && <CcppTab ref={ccppTabRef} invoiceId={invoice.id} />}
+
+      {activeTab === 'details' && (
       <div className="details-split">
         {/* Left: current user's role as the fieldset title */}
         <fieldset className="su-fieldset">
@@ -233,6 +361,71 @@ const InvoiceDetails = () => {
                 <ReadOnly value={invoice.invoiceSubtotalWithTax ? `$${invoice.invoiceSubtotalWithTax}` : null} />
               </Field>
             </div>
+
+            {/* Legacy Salesforce fields (105-field ask) — read-only until a write path exists */}
+            {SF_FIELD_GROUPS.map((group) => (
+              <React.Fragment key={group.title}>
+                <div className="su-section-title">{group.title}</div>
+                <div className="su-grid">
+                  {group.fields.map(([key, label]) => (
+                    <Field key={key} label={label}>
+                      <ReadOnly
+                        value={
+                          group.boolean
+                            ? (sfFields[key] ? 'Yes' : 'No')
+                            : group.title === 'Legacy Dates'
+                              ? formatSfDate(key, sfFields[key])
+                              : sfFields[key]
+                        }
+                      />
+                    </Field>
+                  ))}
+                </div>
+              </React.Fragment>
+            ))}
+
+            {/* Remaining 17 of the 105 fields — not in sfFields, sourced directly from the base
+                invoice response (resolved 2026-11-02, see ../shared/handoffs/frontend.md) */}
+            <div className="su-section-title">Invoice Numbers &amp; Totals</div>
+            <div className="su-grid">
+              <Field label="1° Invoice Number"><ReadOnly value={invoice.firstInvoiceNumber} /></Field>
+              <Field label="2° Invoice Number"><ReadOnly value={invoice.secondInvoiceNumber} /></Field>
+              <Field label="GP Invoice Number"><ReadOnly value={invoice.formattedInvoiceId} /></Field>
+              <Field label="Invoice Id"><ReadOnly value={invoice.id} /></Field>
+              <Field label="Credit Note"><ReadOnly value={invoice.creditNote ? 'Yes' : 'No'} /></Field>
+              <Field label="Invoice Currency"><ReadOnly value={invoice.currencyCode} /></Field>
+              <Field label="Invoice Total">
+                <ReadOnly value={invoice.amount ? `$${invoice.amount}` : null} />
+              </Field>
+            </div>
+
+            <div className="su-section-title">Source Email Details</div>
+            <div className="su-grid">
+              <Field label="ccAddress"><ReadOnly value={invoice.sourceEmail?.cc?.join(', ')} /></Field>
+              <Field label="EmailDescription"><ReadOnly value={invoice.sourceEmail?.body} /></Field>
+              <Field label="EmailSubject"><ReadOnly value={invoice.sourceEmail?.subject} /></Field>
+              <Field label="toEmailAddress"><ReadOnly value={invoice.sourceEmail?.to?.join(', ')} /></Field>
+            </div>
+
+            <div className="su-section-title">Ownership &amp; Audit</div>
+            <div className="su-grid">
+              <Field label="Created By"><ReadOnly value={invoice.createdBy?.name} /></Field>
+              <Field label="CreatedBy Name"><ReadOnly value={invoice.createdBy?.name} /></Field>
+              <Field label="Last Modified By"><ReadOnly value={invoice.updatedBy?.name} /></Field>
+              <Field label="Last ModifiedBy Name"><ReadOnly value={invoice.updatedBy?.name} /></Field>
+              <Field label="Current Owner">
+                <ReadOnly value={invoice.assignedUser?.name || invoice.stage?.name} />
+              </Field>
+              <Field label="IsManual"><ReadOnly value={invoice.isManual ? 'Yes' : 'No'} /></Field>
+            </div>
+
+            <div className="su-section-title">Linked Records</div>
+            <div className="su-grid">
+              <Field label="Attachment ID"><ReadOnly value={invoice.attachments?.[0]?.id} /></Field>
+              <Field label="is CCPP Linked">
+                <ReadOnly value={invoice.ccpps?.length > 0 ? 'Yes' : 'No'} />
+              </Field>
+            </div>
           </div>
 
           <div className="su-footer">
@@ -257,6 +450,7 @@ const InvoiceDetails = () => {
           onUploaded={handleUploaded}
         />
       </div>
+      )}
 
       {confirmSendBack && (
         <ConfirmDialog

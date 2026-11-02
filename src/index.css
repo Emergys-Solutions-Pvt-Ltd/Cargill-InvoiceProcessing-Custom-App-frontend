@@ -1066,8 +1066,11 @@ tbody tr:hover td {
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-secondary);
+  border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  background: none;
+  cursor: pointer;
 }
 
 .tab-link:hover {
