@@ -192,7 +192,9 @@ const CcppDetailPanel = ({ detail, editing, form, onChange, onEdit, onCancel, on
 };
 
 /** CCPP tab: condensed list of CCPP records linked to this invoice, row-expand for full detail. */
-const CcppTab = React.forwardRef(({ invoiceId }, ref) => {
+// GPP only: CCPP rows live in the General Payments invoice tables (/apps/:appId/invoices/:invoiceId/ccpp)
+const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
+  const base = `/apps/${appId}/invoices/${encodeURIComponent(invoiceId)}/ccpp`;
   const { t } = useContext(LanguageContext);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -216,7 +218,7 @@ const CcppTab = React.forwardRef(({ invoiceId }, ref) => {
   const loadList = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/invoices/${encodeURIComponent(invoiceId)}/ccpp`);
+      const res = await apiClient.get(base);
       setRows(res.data);
       setLoadError(null);
     } catch (err) {
@@ -224,12 +226,12 @@ const CcppTab = React.forwardRef(({ invoiceId }, ref) => {
     } finally {
       setLoading(false);
     }
-  }, [invoiceId]);
+  }, [base]);
 
   useEffect(() => { loadList(); }, [loadList]);
 
   const loadDetail = async (id) => {
-    const res = await apiClient.get(`/invoices/${encodeURIComponent(invoiceId)}/ccpp/${id}`);
+    const res = await apiClient.get(`${base}/${id}`);
     setDetailCache((c) => ({ ...c, [id]: res.data }));
     return res.data;
   };
@@ -264,7 +266,7 @@ const CcppTab = React.forwardRef(({ invoiceId }, ref) => {
   const handleSaveEdit = async () => {
     setSaving(true);
     try {
-      const res = await apiClient.put(`/invoices/${encodeURIComponent(invoiceId)}/ccpp/${editingId}`, cleanBody(editForm));
+      const res = await apiClient.put(`${base}/${editingId}`, cleanBody(editForm));
       const updated = res.data.data;
       setDetailCache((c) => ({ ...c, [editingId]: updated }));
       setRows((r) => r.map((row) => (row.id === editingId ? toListItem(updated) : row)));
@@ -287,7 +289,7 @@ const CcppTab = React.forwardRef(({ invoiceId }, ref) => {
   const handleCreate = async () => {
     setSaving(true);
     try {
-      const res = await apiClient.post(`/invoices/${encodeURIComponent(invoiceId)}/ccpp`, cleanBody(addForm));
+      const res = await apiClient.post(base, cleanBody(addForm));
       const created = res.data.data;
       setRows((r) => [...r, toListItem(created)]);
       setDetailCache((c) => ({ ...c, [created.id]: created }));

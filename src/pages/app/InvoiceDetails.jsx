@@ -14,6 +14,7 @@ import {
 } from '../../components/SjoInvoiceFields';
 
 const isSjoInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'SJO';
+const isGppInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'GP';
 const SJO_KEYS = Object.keys(emptySjoForm());
 
 // SJO invoices also edit their SJO fields (country, BU, ERP, ID Fiscal, A.B., flags) in the same form
@@ -180,7 +181,7 @@ const InvoiceDetails = () => {
 
   const loadInvoice = useCallback(async () => {
     try {
-      const response = await apiClient.get(`/invoices/${encodeURIComponent(invoiceId)}`);
+      const response = await apiClient.get(`/apps/${appId}/invoices/${encodeURIComponent(invoiceId)}`);
       applyInvoice(response.data);
       setSelectedAttachmentId((current) =>
         response.data.attachments.some((a) => a.id === current) ? current : response.data.attachments[0]?.id ?? null
@@ -188,7 +189,7 @@ const InvoiceDetails = () => {
     } catch (err) {
       setLoadError(err.response?.data?.message || 'Failed to load the invoice');
     }
-  }, [invoiceId, applyInvoice]);
+  }, [appId, invoiceId, applyInvoice]);
 
   useEffect(() => {
     loadInvoice();
@@ -205,6 +206,7 @@ const InvoiceDetails = () => {
   }, [appId]);
 
   const sjo = isSjoInvoice(invoice);
+  const isGpp = isGppInvoice(invoice);
   const sjoOptions = useSjoOptions(sjo);
 
   const changedKeys = useMemo(() => {
@@ -229,7 +231,7 @@ const InvoiceDetails = () => {
     }
     setSaving(true);
     try {
-      const response = await apiClient.put(`/invoices/${encodeURIComponent(invoice.id)}/details`, {
+      const response = await apiClient.put(`/apps/${appId}/invoices/${encodeURIComponent(invoice.id)}/details`, {
         processId: form.processId || null,
         originCityId: form.originCityId || null,
         destinationCityId: form.destinationCityId || null,
@@ -260,7 +262,7 @@ const InvoiceDetails = () => {
   };
 
   const handleSendBack = async () => {
-    const response = await apiClient.post(`/invoices/${encodeURIComponent(invoice.id)}/send-to-previous-team`);
+    const response = await apiClient.post(`/apps/${appId}/invoices/${encodeURIComponent(invoice.id)}/send-to-previous-team`);
     await loadInvoice();
     showNotice(true, response.data.message);
   };
@@ -307,8 +309,8 @@ const InvoiceDetails = () => {
           >
             {t('details', 'Details')}
           </button>
-          {/* CCPP is a General Payments record; SJO shows only its own fields */}
-          {!sjo && (
+          {/* CCPP rows exist for General Payments invoices only (gpp.invoice_ccpps) */}
+          {isGpp && (
             <button
               type="button"
               className={`tab-link ${activeTab === 'ccpp' ? 'active' : ''}`}
@@ -331,7 +333,7 @@ const InvoiceDetails = () => {
         </div>
       )}
 
-      {activeTab === 'ccpp' && <CcppTab ref={ccppTabRef} invoiceId={invoice.id} />}
+      {activeTab === 'ccpp' && <CcppTab ref={ccppTabRef} appId={appId} invoiceId={invoice.id} />}
 
       {activeTab === 'details' && (
       <div className="details-split">

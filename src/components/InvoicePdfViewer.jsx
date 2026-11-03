@@ -40,7 +40,7 @@ const InvoicePdfViewer = ({ invoice, attachments, selectedId, onSelect, onUpload
     setUploading(true);
     setError('');
     try {
-      const response = await apiClient.post(`/invoices/${encodeURIComponent(invoice.id)}/attachments`, file, {
+      const response = await apiClient.post(`/apps/${invoice.appId}/invoices/${encodeURIComponent(invoice.id)}/attachments`, file, {
         params: { fileName: file.name },
         headers: { 'Content-Type': 'application/pdf' },
         timeout: 120000
