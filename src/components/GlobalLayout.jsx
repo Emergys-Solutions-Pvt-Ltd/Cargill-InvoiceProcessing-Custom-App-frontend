@@ -143,6 +143,7 @@ const GlobalLayout = () => {
                 <SubItem to="/settings/configuration" label={t('configurationMenu', 'Configuration')} />
                 <SubItem to="/settings/sap-configuration" label={t('sapConfigurationMenu', 'SAP Configuration')} />
                 <SubItem to="/settings/onbase-configuration" label={t('onbaseConfigurationMenu', 'OnBase Configuration')} />
+                <SubItem to="/settings/email-configuration" label={t('emailConfigurationMenu', 'Email Configuration')} />
               </NavSection>
             )}
           </nav>

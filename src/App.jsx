@@ -18,6 +18,7 @@ import Users from './pages/settings/Users';
 import Configuration from './pages/settings/Configuration';
 import IntegrationList from './pages/settings/integrations/IntegrationList';
 import IntegrationDetail from './pages/settings/integrations/IntegrationDetail';
+import EmailConfigurationForm  from './pages/settings/email/EmailConfigurationForm';
 import { APPS } from './utils/appHelper';
 
 const SmartRedirect = () => {
@@ -72,6 +73,8 @@ function App() {
                   <Route path="onbase-configuration" element={<IntegrationList providerType="onbase-rest" />} />
                   <Route path="onbase-configuration/:id" element={<IntegrationDetail providerType="onbase-rest" />} />
                   <Route path="onbase-configuration/:id/:tab" element={<IntegrationDetail providerType="onbase-rest" />} />
+                  <Route path="email-configuration" element={<EmailConfigurationForm />} />
+                  <Route path="email-configuration/:tab" element={<EmailConfigurationForm />} />
                 </Route>
               </Route>
 
