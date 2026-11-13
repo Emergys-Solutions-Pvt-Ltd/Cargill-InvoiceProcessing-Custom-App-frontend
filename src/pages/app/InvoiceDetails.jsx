@@ -240,9 +240,9 @@ const InvoiceDetails = () => {
         assignedUserId: form.assignedUserId || null,
         ...(sjoChanged ? {
           sjoFields: {
-            countryId: Number(form.countryId),
-            businessUnitId: Number(form.businessUnitId),
-            erpSystemId: Number(form.erpSystemId),
+            countryId: form.countryId,
+            businessUnitId: form.businessUnitId,
+            erpSystemId: form.erpSystemId,
             idFiscal: form.idFiscal,
             abNumber: form.abNumber || null,
             abName: form.abName || null,
