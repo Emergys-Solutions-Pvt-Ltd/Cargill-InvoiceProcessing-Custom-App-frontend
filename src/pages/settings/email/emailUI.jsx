@@ -62,4 +62,4 @@ export const errorsFor = (fieldErrors, prefix) =>
 export const emptyConnection = () => ({ tenantId: '', clientId: '', clientSecret: '' });
 
 /** Blank mailbox registration (many allowed). */
-export const emptyMailbox = () => ({ emailAddress: '', folderToRead: 'Inbox', moduleSlug: '', isActive: true });
+export const emptyMailbox = () => ({ address: '', folder: 'inbox', moduleSlug: '', isActive: true });

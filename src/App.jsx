@@ -13,6 +13,8 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import InvoiceList from './pages/app/InvoiceList';
 import InvoiceDetails from './pages/app/InvoiceDetails';
+import Inbox from './pages/app/Inbox';
+import InboxEmailDetail from './pages/app/InboxEmailDetail';
 import RospbuInvoiceCreate from './pages/app/RospbuInvoiceCreate';
 import TeamAssignment from './pages/app/TeamAssignment';
 import Users from './pages/settings/Users';
@@ -52,6 +54,8 @@ function App() {
                     invoices             Invoice list with pagination, filter and search
                     invoices/new         ROSPBU only: Create Invoice page ("ROSPBU Invoice Edit" fields)
                     invoices/:invoiceId  Invoice details with PDF preview
+                    inbox                Received emails of the app's mailboxes (D-020 / D-023)
+                    inbox/:emailId       Email detail with PDF preview, Ignore / Move back to New
                     team                 Team assignment: add & remove users (admin)
                 */}
                 {APPS.map((app) => (
@@ -60,6 +64,8 @@ function App() {
                     <Route path="invoices" element={<InvoiceList />} />
                     {app.id === 'rospbu' && <Route path="invoices/new" element={<RospbuInvoiceCreate />} />}
                     <Route path="invoices/:invoiceId" element={<InvoiceDetails />} />
+                    <Route path="inbox" element={<Inbox />} />
+                    <Route path="inbox/:emailId" element={<InboxEmailDetail />} />
                     <Route path="team" element={<AuthRoute requireAdmin={true}><TeamAssignment /></AuthRoute>} />
                   </Route>
                 ))}
