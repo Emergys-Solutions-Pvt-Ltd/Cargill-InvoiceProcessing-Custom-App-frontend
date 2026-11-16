@@ -49,7 +49,7 @@ const ItemFormModal = ({ def, parentDef, item, parentOptions, onClose, onSaved }
       code: form.code.trim() || null,
       name: form.name,
       description: form.description.trim() || null,
-      parentId: parentDef ? Number(form.parentId) || null : null,
+      parentId: parentDef ? form.parentId || null : null,
       color: def.hasColor ? form.color : null,
       sortOrder: Number(form.sortOrder) || 0,
       isActive: form.isActive
