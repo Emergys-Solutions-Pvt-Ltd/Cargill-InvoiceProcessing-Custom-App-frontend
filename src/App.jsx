@@ -13,6 +13,8 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import InvoiceList from './pages/app/InvoiceList';
 import InvoiceDetails from './pages/app/InvoiceDetails';
+import Inbox from './pages/app/Inbox';
+import InboxEmailDetail from './pages/app/InboxEmailDetail';
 import TeamAssignment from './pages/app/TeamAssignment';
 import Users from './pages/settings/Users';
 import Configuration from './pages/settings/Configuration';
@@ -50,6 +52,8 @@ function App() {
                   General Payments, SJO Invoice Processing, ROSPBU Invoice Processing - same pages each:
                     invoices             Invoice list with pagination, filter and search
                     invoices/:invoiceId  Invoice details with PDF preview
+                    inbox                Received emails of the app's mailboxes (D-020 / D-023)
+                    inbox/:emailId       Email detail with PDF preview, Ignore / Move back to New
                     team                 Team assignment: add & remove users (admin)
                 */}
                 {APPS.map((app) => (
@@ -57,6 +61,8 @@ function App() {
                     <Route index element={<Navigate to="invoices" replace />} />
                     <Route path="invoices" element={<InvoiceList />} />
                     <Route path="invoices/:invoiceId" element={<InvoiceDetails />} />
+                    <Route path="inbox" element={<Inbox />} />
+                    <Route path="inbox/:emailId" element={<InboxEmailDetail />} />
                     <Route path="team" element={<AuthRoute requireAdmin={true}><TeamAssignment /></AuthRoute>} />
                   </Route>
                 ))}
