@@ -17,6 +17,39 @@ const isSjoInvoice = (invoice) => String(invoice?.applicationCode || '').toUpper
 const isGppInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'GP';
 const SJO_KEYS = Object.keys(emptySjoForm());
 
+const lookupName = (ref) => (ref ? (ref.code && ref.code !== ref.name ? `${ref.name} (${ref.code})` : ref.name) : null);
+const numberText = (n) => (n === null || n === undefined ? null : String(n));
+
+/** ROSPBU Invoice Edit fields (invoice.rospbuFields), in the order of the ROSPBU Create Invoice page. */
+const ROSPBU_FIELDS = [
+  ['País', (f) => lookupName(f.country)],
+  ['BU', (f) => lookupName(f.businessUnit)],
+  ['ERP', (f) => lookupName(f.erpSystem)],
+  ['Retención', (f) => f.retencion],
+  ['Código Imputación', (f) => f.codigoImputacion],
+  ['Nro AR', (f) => f.nroAr],
+  ['Cantidad', (f) => numberText(f.cantidad)],
+  ['Producto', (f) => f.producto],
+  ['NP', (f) => f.np],
+  ['Nº de remito', (f) => f.nroRemito],
+  ['FILIAL', (f) => f.filial],
+  ['Adicional Info', (f) => f.additionalInfo],
+  ['Número de Documento', (f) => f.numeroDocumento],
+  ['General Comment', (f) => f.generalComment],
+  ['Total de la FC', (f) => numberText(f.totalFc)],
+  ['Fecha de Fc', (f) => f.invoiceDate],
+  ['Centro Emisor', (f) => f.centroEmisor],
+  ['Fecha de Vencimiento', (f) => f.dueDate],
+  ['Moneda de la Fc', (f) => f.currency],
+  ['Nº de OC', (f) => f.poNumber],
+  ['Instrumento de Pago', (f) => f.instrumentoPago],
+  ['Timbrado', (f) => f.timbrado],
+  ['BP Number', (f) => f.bpNumber],
+  ['Número de Liquidación', (f) => f.numeroLiquidacion],
+  ['Branch Plant', (f) => f.branchPlant],
+  ['G_TIPO_OPER', (f) => f.tipoOperacion]
+];
+
 // SJO invoices also edit their SJO fields (country, BU, ERP, ID Fiscal, A.B., flags) in the same form
 const toForm = (invoice) => ({
   originCityId: invoice.origin?.id ?? '',
@@ -427,6 +460,18 @@ const InvoiceDetails = () => {
                 <ReadOnly value={invoice.invoiceSubtotalWithTax ? `$${invoice.invoiceSubtotalWithTax}` : null} />
               </Field>
             </div>
+
+            {/* ROSPBU Invoice Edit fields (entered on the ROSPBU Create Invoice page), read-only here */}
+            {invoice.rospbuFields && (
+              <>
+                <div className="su-section-title">{t('rospbuInformation', 'ROSPBU Information')}</div>
+                <div className="su-grid">
+                  {ROSPBU_FIELDS.map(([label, value]) => (
+                    <Field key={label} label={label}><ReadOnly value={value(invoice.rospbuFields)} /></Field>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* Legacy Salesforce fields (105-field ask) — read-only until a write path exists */}
             {SF_FIELD_GROUPS.map((group) => (

@@ -13,6 +13,7 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import InvoiceList from './pages/app/InvoiceList';
 import InvoiceDetails from './pages/app/InvoiceDetails';
+import RospbuInvoiceCreate from './pages/app/RospbuInvoiceCreate';
 import TeamAssignment from './pages/app/TeamAssignment';
 import Users from './pages/settings/Users';
 import Configuration from './pages/settings/Configuration';
@@ -49,6 +50,7 @@ function App() {
                 {/*
                   General Payments, SJO Invoice Processing, ROSPBU Invoice Processing - same pages each:
                     invoices             Invoice list with pagination, filter and search
+                    invoices/new         ROSPBU only: Create Invoice page ("ROSPBU Invoice Edit" fields)
                     invoices/:invoiceId  Invoice details with PDF preview
                     team                 Team assignment: add & remove users (admin)
                 */}
@@ -56,6 +58,7 @@ function App() {
                   <Route key={app.id} path={`app/${app.id}`} element={<AuthRoute requireApp={app.id}><AppLayout /></AuthRoute>}>
                     <Route index element={<Navigate to="invoices" replace />} />
                     <Route path="invoices" element={<InvoiceList />} />
+                    {app.id === 'rospbu' && <Route path="invoices/new" element={<RospbuInvoiceCreate />} />}
                     <Route path="invoices/:invoiceId" element={<InvoiceDetails />} />
                     <Route path="team" element={<AuthRoute requireAdmin={true}><TeamAssignment /></AuthRoute>} />
                   </Route>

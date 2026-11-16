@@ -1911,3 +1911,138 @@ button.cell-link { background: none; border: none; padding: 0; font: inherit; }
 @media (max-width: 560px) {
   .email-grid-3, .email-grid-4, .email-history-filters { grid-template-columns: 1fr; }
 }
+
+/* ROSPBU "Create Invoice" page (pages/app/RospbuInvoiceCreate.jsx): Salesforce-style edit layout */
+.rospbu-edit {
+  padding: 0;
+  overflow: hidden;
+}
+
+.rospbu-edit-header,
+.rospbu-edit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--panel-bg);
+}
+
+.rospbu-edit-header {
+  border-top: 3px solid var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rospbu-edit-header h2 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rospbu-edit-footer {
+  justify-content: center;
+  border-top: 1px solid var(--border-color);
+}
+
+.rospbu-edit-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rospbu-edit-header .rospbu-edit-buttons {
+  margin: 0 auto;
+}
+
+.rospbu-edit-section {
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: rgba(var(--primary-rgb), 0.08);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rospbu-edit-body {
+  padding: 1rem 1.25rem 1.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rospbu-edit-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 35%) 1fr;
+  align-items: start;
+  gap: 1rem;
+}
+
+.rospbu-edit-row > label {
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding-top: 0.45rem;
+}
+
+.rospbu-edit-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.rospbu-edit-control > .input-field {
+  max-width: 260px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.rospbu-edit-control > .rospbu-w-sm { max-width: 200px; }
+.rospbu-edit-control > .rospbu-w-md { max-width: 260px; }
+.rospbu-edit-control > .rospbu-w-lg { max-width: 460px; resize: vertical; }
+.rospbu-edit-control > .rospbu-w-xl { max-width: 720px; }
+
+.rospbu-edit-hint {
+  display: inline-flex;
+  color: var(--link-color);
+  cursor: help;
+}
+
+.rospbu-edit-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 1.25rem 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.rospbu-edit-alert-error {
+  color: var(--danger-color);
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+}
+
+.rospbu-edit-alert-success {
+  color: var(--success-color);
+  background: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+@media (max-width: 640px) {
+  .rospbu-edit-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .rospbu-edit-row > label {
+    text-align: left;
+    padding-top: 0;
+  }
+
+  .rospbu-edit-control > .input-field {
+    max-width: none;
+  }
+}

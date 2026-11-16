@@ -668,8 +668,11 @@ const InvoiceList = () => {
             <Upload size={18} /> {t('bulkUpload', 'Bulk Upload')}
           </button>
 
-          {/* Single Create Invoice Button */}
-          <button className="btn btn-primary" onClick={handleOpenCreateModal} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          {/* Single Create Invoice Button (ROSPBU: its own page with the ROSPBU fields) */}
+          <button
+            className="btn btn-primary"
+            onClick={appId === 'rospbu' ? () => navigate(`/app/${appId}/invoices/new`) : handleOpenCreateModal}
+style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             <Plus size={18} /> {t('createInvoice', 'Create Invoice')}
           </button>
         </div>
