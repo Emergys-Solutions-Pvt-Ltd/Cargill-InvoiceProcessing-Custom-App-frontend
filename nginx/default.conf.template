@@ -1,6 +1,7 @@
-# Rendered by the nginx image's envsubst step: ${API_UPSTREAM} comes from the container environment.
+# Rendered at start-up by nginx/docker-entrypoint.sh: ${API_UPSTREAM} comes from the container environment.
 server {
-    listen 80;
+    # 8080: the container runs nginx as a non-root user, which cannot bind ports below 1024
+    listen 8080;
     server_name _;
     root /usr/share/nginx/html;
     index index.html;

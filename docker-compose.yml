@@ -17,5 +17,5 @@ services:
       # Makes host.docker.internal resolve on Linux too (Docker Desktop provides it already)
       - "host.docker.internal:host-gateway"
     ports:
-      - "${WEB_PORT:-8080}:80"
+      - "${WEB_PORT:-8080}:8080"
     restart: unless-stopped

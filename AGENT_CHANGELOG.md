@@ -26,6 +26,29 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-23 — Frontend image: critical CVEs fixed (Feature: container-security)
+**Agent:** frontend-agent · **Status:** Done in source; image not rebuilt / rescanned yet (Docker unavailable) · **Handoffs:** none
+
+### What changed
+- `Dockerfile`, `Dockerfile.DEV`, `Dockerfile.STG` — runtime stage now `alpine:3.24` (pinned digest) + Alpine's `nginx` package
+  instead of `nginxinc/nginx-unprivileged:stable-alpine` (nginx 1.30.6; no 1.30.7 image published). The build requires
+  nginx >= 1.30.7-r0, zlib >= 1.4-r0, brotli-libs >= 1.2.1-r0 (if present) and fails if curl / libcurl are installed.
+  Still non-root (user `nginx`), port 8080; health check via busybox wget on `/healthz`. Build stage unchanged.
+- `nginx/nginx.conf` (new) — main config for a non-root nginx (pid / temp files in /tmp, logs to stdout/stderr, server_tokens off).
+  The Dockerfiles copied a root `nginx.conf` that did not exist in the repo.
+- `nginx/docker-entrypoint.sh` (new) — renders `nginx/default.conf.template` with `API_UPSTREAM` (busybox sed, no gettext), `nginx -t`, exec.
+- `nginx/default.conf.template` — `listen 8080` (non-root cannot bind 80).
+- `docker-compose.yml` — container port 80 -> 8080.
+
+### Why
+Image scan: CRITICAL CVE-2026-113425/-121810/-123007/-123633/-123634 (nginx 1.30.6), CVE-2026-4738 (zlib),
+CVE-2026-111497 (brotli-libs, CISA KEV), CVE-2026-86411/-86413/-86414/-87861/-87866/-92388/-94265 (curl, libcurl).
+
+### Cross-repo impact
+- Workspace `../docker-compose.yml`: web port mapping changed to `8080:8080`.
+
+---
+
 ## 2026-11-05 — Inbox tab, list and email detail in each application (Feature: email-inbox)
 **Agent:** frontend-agent · **Status:** Done (UI built against the D-023 contract; not yet tested against the API) · **Handoffs:** none
 
