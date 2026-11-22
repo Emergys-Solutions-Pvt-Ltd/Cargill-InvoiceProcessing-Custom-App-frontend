@@ -4,7 +4,8 @@ Also follow the workspace rules in `../CLAUDE.md`. Owner agent: frontend-agent (
 
 ## What this repo is
 React 19 SPA, JavaScript/JSX (no TypeScript), ES modules, Vite 8, react-router-dom 7, axios, lucide-react icons.
-Production build served by nginx (Docker), `/api` reverse-proxied to `API_UPSTREAM`.
+Production build served by non-root nginx on port 8080 (Docker, Alpine), configured by the single root `nginx.conf`;
+`/api` is reverse-proxied to `http://backend:4000`.
 Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 
 ## Layout
@@ -39,11 +40,11 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 
 ## Protected (propose explicitly before editing)
 `src/services/network.service.js`, `src/context/AuthContext.jsx`, `src/components/AuthRoute.jsx`,
-`nginx/default.conf.template`, `Dockerfile`, `docker-compose.yml`, `package-lock.json`.
+`nginx.conf`, `Dockerfile` (+ `.DEV` / `.STG`), `docker-compose.yml`, `package-lock.json`.
 Secret inputs use `type="password"`; never log or show secrets/tokens.
 
 ## Do not run without approval
-`npm run dev` / `preview` against a real backend; `docker compose up` with a real `API_UPSTREAM`;
+`npm run dev` / `preview` against a real backend; `docker compose up` against a real backend;
 any UI action against a live backend (Sync, Delete integration, bulk upload, Users delete).
 
 ## Checks before "done"

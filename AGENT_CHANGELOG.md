@@ -33,12 +33,14 @@ Written for a future developer who has no context.
 - `Dockerfile`, `Dockerfile.DEV`, `Dockerfile.STG` — runtime stage now `alpine:3.24` (pinned digest) + Alpine's `nginx` package
   instead of `nginxinc/nginx-unprivileged:stable-alpine` (nginx 1.30.6; no 1.30.7 image published). The build requires
   nginx >= 1.30.7-r0, zlib >= 1.4-r0, brotli-libs >= 1.2.1-r0 (if present) and fails if curl / libcurl are installed.
-  Still non-root (user `nginx`), port 8080; health check via busybox wget on `/healthz`. Build stage unchanged.
-- `nginx/nginx.conf` (new) — main config for a non-root nginx (pid / temp files in /tmp, logs to stdout/stderr, server_tokens off).
-  The Dockerfiles copied a root `nginx.conf` that did not exist in the repo.
-- `nginx/docker-entrypoint.sh` (new) — renders `nginx/default.conf.template` with `API_UPSTREAM` (busybox sed, no gettext), `nginx -t`, exec.
-- `nginx/default.conf.template` — `listen 8080` (non-root cannot bind 80).
-- `docker-compose.yml` — container port 80 -> 8080.
+  Non-root (user `nginx`), port 8080, health check via busybox wget on `/healthz`. Build stage unchanged.
+- `nginx.conf` (new, single file at the repo root, copied to /etc/nginx/nginx.conf; the Dockerfiles already expected it):
+  `/api/` proxy to `http://backend:4000`, `server_tokens off`, 20 MB bodies, gzip, `/healthz`, `absolute_redirect off`,
+  `no-cache` index.html / immutable `/assets/`, security headers (nosniff, X-Frame-Options SAMEORIGIN, CSP frame-ancestors /
+  base-uri / form-action 'self', Referrer-Policy, Permissions-Policy, COOP) on the static locations only (the API uses helmet),
+  temp files and pid in /tmp, logs to stdout / stderr.
+- `nginx/` folder removed (`default.conf.template` with `API_UPSTREAM` substitution); `API_UPSTREAM` no longer exists.
+- `docker-compose.yml` — port 8080, `backend` mapped to the Docker host (`extra_hosts: backend:host-gateway`).
 
 ### Why
 Image scan: CRITICAL CVE-2026-113425/-121810/-123007/-123633/-123634 (nginx 1.30.6), CVE-2026-4738 (zlib),
