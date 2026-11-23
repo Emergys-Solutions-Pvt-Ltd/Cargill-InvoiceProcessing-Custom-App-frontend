@@ -34,10 +34,12 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 `t('key', 'English fallback')` and add the key to BOTH `src/locales/en.json` and `src/locales/es.json`.
 
 ## API calls
-- Only through `apiClient` (`src/services/network.service.js`): `baseURL '/api'`, 5 s timeout (pass the `LONG_REQUEST` override for slow calls),
+- Only through `apiClient` (`src/services/network.service.js`): base URL from `src/config/env.js` (`/api`, or `VITE_API_BASE_URL[_DEV|_STG]` + `/api`), 5 s timeout (pass the `LONG_REQUEST` override for slow calls),
   Bearer token from localStorage, 401 → logout to `/login`.
-- Paths WITHOUT `/api` (e.g. `apiClient.get('/apps/' + appId + '/invoices')`). No hard-coded hosts. Only `src/services/msal.service.js`
-  reads `import.meta.env` (`VITE_MSAL_*`, build time).
+- Paths WITHOUT `/api` (e.g. `apiClient.get('/apps/' + appId + '/invoices')`). No hard-coded hosts.
+- Environment variables: only `src/config/env.js` reads `import.meta.env` (build time). `ENVIRONMENT` (`.env`; set by each Dockerfile)
+  picks the names: DEV -> `VITE_<NAME>_DEV` (Dockerfile.DEV), STAGE -> `VITE_<NAME>_STG` (Dockerfile.STG), PROD/empty -> `VITE_<NAME>`
+  (Dockerfile); `vite.config.js` exposes it (`envPrefix`) and fails the build on any other value. Use `config.*` / `envVar('NAME')`; new variables need the three secrets in `.vela` + ARGs in all three Dockerfiles.
 - Auth: password (`/auth/login`) or Microsoft Entra ID (MSAL -> `/auth/sso`); sign-out revokes the API session (`/auth/logout`);
   `AuthContext` signs out after `sessionIdleTimeoutMinutes` (default 30) without user activity.
 - The contract is the backend's `src/core/docs/openapi.ts`. Use field names exactly (camelCase). Never invent endpoints → handoff `H-FE-BE-nnn`.
@@ -47,7 +49,7 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 
 ## Protected (propose explicitly before editing)
 `src/services/network.service.js`, `src/services/msal.service.js`, `src/context/AuthContext.jsx`, `src/components/AuthRoute.jsx`,
-`nginx.conf`, `Dockerfile` (+ `.DEV` / `.STG`), `docker-compose.yml`, `package-lock.json`, `src/theme/StyleProvider.jsx`, `index.html` (nonce meta).
+`nginx.conf`, `Dockerfile` (+ `.DEV` / `.STG`), `docker-compose.yml`, `package-lock.json`, `.vela`, `.captain*.yml`, `src/config/env.js`, `src/theme/StyleProvider.jsx`, `index.html` (nonce meta).
 Secret inputs use `type="password"`; never log or show secrets/tokens.
 
 ## Do not run without approval

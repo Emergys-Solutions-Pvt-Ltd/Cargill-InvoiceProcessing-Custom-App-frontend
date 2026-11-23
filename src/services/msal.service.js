@@ -1,17 +1,15 @@
 import { PublicClientApplication } from '@azure/msal-browser';
+import { config } from '../config/env';
 
 /*
  * Microsoft Entra ID (Azure AD) sign-in with MSAL (authorization code flow + PKCE, redirect).
- * Settings are baked in at build time from VITE_MSAL_* (frontend .env / Docker build args).
- * Without VITE_MSAL_CLIENT_ID the "Sign in with Microsoft" button is hidden.
+ * Settings come from the environment layer (src/config/env.js): VITE_MSAL_*[_DEV|_STG], baked in at build time.
+ * Without a client id the "Sign in with Microsoft" button is hidden.
  */
-const env = import.meta.env;
-const clientId = (env.VITE_MSAL_CLIENT_ID || '').trim();
-const tenantId = (env.VITE_MSAL_TENANT_ID || '').trim();
-const apiScope = (env.VITE_MSAL_API_SCOPE || '').trim();
+const { clientId, tenantId, authority, redirectUri, postLogoutRedirectUri, apiScope } = config.msal;
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
-export const msalConfigured = Boolean(clientId && (tenantId || env.VITE_MSAL_AUTHORITY));
+export const msalConfigured = Boolean(clientId && (tenantId || authority));
 
 // The API token is requested for the API's scope (api://<API client id>/access_as_user); without one the ID token is used
 const loginScopes = apiScope ? [apiScope] : ['openid', 'profile', 'email'];
@@ -20,9 +18,9 @@ const pca = msalConfigured
   ? new PublicClientApplication({
       auth: {
         clientId,
-        authority: (env.VITE_MSAL_AUTHORITY || '').trim() || `https://login.microsoftonline.com/${tenantId}`,
-        redirectUri: (env.VITE_MSAL_REDIRECT_URI || '').trim() || `${origin}/login`,
-        postLogoutRedirectUri: (env.VITE_MSAL_POST_LOGOUT_REDIRECT_URI || '').trim() || `${origin}/login`,
+        authority: authority || `https://login.microsoftonline.com/${tenantId}`,
+        redirectUri: redirectUri || `${origin}/login`,
+        postLogoutRedirectUri: postLogoutRedirectUri || `${origin}/login`,
       },
       // Per tab, gone when the tab closes; cleared on sign-out
       cache: { cacheLocation: 'sessionStorage' },

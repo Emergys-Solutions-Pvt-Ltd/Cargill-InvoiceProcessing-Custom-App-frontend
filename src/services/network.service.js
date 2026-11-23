@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { storageService } from './storage.service';
+import { config } from '../config/env';
 
 const apiClient = axios.create({
-  baseURL: '/api',
+  // '/api' (same origin) or VITE_API_BASE_URL[_DEV|_STG] + '/api' - see src/config/env.js
+  baseURL: config.apiBaseUrl,
   timeout: 5000,
 });
 

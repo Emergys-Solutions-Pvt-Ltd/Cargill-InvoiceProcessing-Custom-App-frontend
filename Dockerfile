@@ -1,5 +1,5 @@
 # ==========================================
-# Stage 1 - Build React/PROD_VITE Application
+# Stage 1 - Build the React app (production: VITE_* without suffix variables)
 # ==========================================
 FROM node:24-alpine AS build
 
@@ -10,6 +10,9 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# Environment layer (src/config/env.js): ENVIRONMENT=PROD - this image is the production build and reads only VITE_<NAME>.
+ENV ENVIRONMENT=PROD
 
 # Microsoft Entra ID sign-in (MSAL), baked into the JS bundle at build time - IDs only, never secrets.
 # Pass with --build-arg (or compose build.args from .env). Without VITE_MSAL_CLIENT_ID the
@@ -66,6 +69,20 @@ RUN set -eux; \
     nginx -v
 
 COPY nginx.conf /etc/nginx/nginx.conf
+
+# CSP (nginx.conf __CSP_EXTRA_ORIGINS__): allow this environment's API origin and a custom MSAL authority host
+# in connect-src / frame-src. Only https://host[:port] is accepted, anything else is dropped.
+ARG VITE_API_BASE_URL
+ARG VITE_MSAL_AUTHORITY
+RUN set -eu; \
+    origins=""; \
+    for url in "${VITE_API_BASE_URL:-}" "${VITE_MSAL_AUTHORITY:-}"; do \
+      o="$(printf '%s' "$url" | sed -nE 's#^(https://[A-Za-z0-9.-]+(:[0-9]+)?)([/?].*)?$#\1#p')"; \
+      if [ -n "$o" ]; then origins="$origins $o"; fi; \
+    done; \
+    sed -i "s#__CSP_EXTRA_ORIGINS__#${origins# }#g" /etc/nginx/nginx.conf; \
+    if grep -q __CSP_EXTRA_ORIGINS__ /etc/nginx/nginx.conf; then echo "CSP placeholder left" >&2; exit 1; fi
+
 COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 USER 101:101

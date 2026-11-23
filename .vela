@@ -1,3 +1,8 @@
+# Pipeline: one image + deployment per branch, each with its own variables (src/config/env.js picks them by ENVIRONMENT,
+# which every Dockerfile sets itself: DEV / STAGE / PROD):
+#   development          -> VITE_*_DEV secrets, Dockerfile.DEV, .captain-dev.yml (env dev)
+#   stage / staging      -> VITE_*_STG secrets, Dockerfile.STG, .captain-stg.yml (env stage)
+#   main / production    -> VITE_*     secrets, Dockerfile,     .captain.yml     (env prod)
 version: "1"
 secrets:
 # DEV SECRETS
@@ -69,12 +74,12 @@ secrets:
     key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID
     engine: native
     type: repo
-  - name: VITE_MSAL_CLIENT_ID
-    key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID
-    engine: native
-    type: repo
   - name: VITE_MSAL_TENANT_ID
     key: lataminvoiceworkflow/frontend/VITE_MSAL_TENANT_ID
+    engine: native
+    type: repo
+  - name: VITE_MSAL_AUTHORITY
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_AUTHORITY
     engine: native
     type: repo
   - name: VITE_MSAL_REDIRECT_URI
@@ -138,7 +143,7 @@ steps:
     image: docker-utilities.binrepo.cglcloud.in/enablement/docker-plugin:3-stable
     ruleset:
       if:
-        branch: [stage]
+        branch: [stage, staging]
         event: [push]
     secrets:
           [
@@ -169,7 +174,7 @@ steps:
     image: docker-utilities.binrepo.cglcloud.in/enablement/docker-plugin:3-stable
     ruleset:
       if:
-        branch: [main]
+        branch: [main, production]
         event: [push]
     secrets:
           [
@@ -213,7 +218,7 @@ steps:
     image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
     ruleset:
       if:
-        branch: [stage]
+        branch: [stage, staging]
         event: [push]
     parameters:
       captain_file: .captain-stg.yml
@@ -226,7 +231,7 @@ steps:
     image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
     ruleset:
       if:
-        branch: [main]
+        branch: [main, production]
         event: [push]
     parameters:
       captain_file: .captain.yml

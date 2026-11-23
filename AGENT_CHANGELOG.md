@@ -26,6 +26,29 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-23 — Environment layer (_DEV / _STG / production variables) + .vela per-branch pipeline (Feature: env-layer)
+**Agent:** frontend-agent · **Status:** Done (build + lint; DEV/STG/PROD bundles checked; Docker images not built - no Docker here) · **Handoffs:** none
+
+- `src/config/env.js` (new) — the only reader of `import.meta.env`. `VITE_APP_ENV` DEV/STG/PROD selects `VITE_<NAME>_DEV`,
+  `VITE_<NAME>_STG` or `VITE_<NAME>`; no fallback between environments. Exposes `config.apiBaseUrl` and `config.msal`.
+- `msal.service.js` reads `config.msal`; `network.service.js` uses `config.apiBaseUrl` (`/api` or `VITE_API_BASE_URL*` + `/api`).
+- `Dockerfile` / `.DEV` / `.STG` — set `VITE_APP_ENV` (PROD / DEV / STG); runtime stage writes the API origin and a custom MSAL
+  authority origin into the nginx CSP (`__CSP_EXTRA_ORIGINS__` in connect-src / frame-src; https host only).
+  `.DEV` / `.STG` back to the numeric `USER 101:101` (`USER nginx` breaks Kubernetes runAsNonRoot).
+- `.vela` — header documents the mapping; production secrets: duplicate `VITE_MSAL_CLIENT_ID` removed, missing
+  `VITE_MSAL_AUTHORITY` added (the prod step referenced it); branches `stage`+`staging`, `main`+`production`.
+- `.env.example`, `CLAUDE.md` updated.
+
+- Follow-up: the selector is `ENVIRONMENT` (DEV / STAGE / PROD) in `.env` and in each Dockerfile (replaces `VITE_APP_ENV`);
+  `vite.config.js` exposes it with `envPrefix` and stops the build on an unknown value. `.env.example` lists the three variable sets.
+
+### Still to do / known issues
+- A cross-origin API (`VITE_API_BASE_URL*` set) needs the backend `CORS_ORIGINS` to list the frontend origin.
+- `.captain*.yml` still send their own CSP with `'unsafe-inline'`; if the ingress adds it next to nginx's, browsers enforce both
+  (nginx's strict one still applies) but scanners will report the `unsafe-inline` header.
+
+---
+
 ## 2026-11-23 — Login page redesign: split brand panel + SSO-first (Feature: login-redesign)
 **Agent:** frontend-agent · **Status:** Done (build + lint; checked in the browser under the strict CSP, with and without MSAL settings) · **Handoffs:** none
 
