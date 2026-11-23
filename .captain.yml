@@ -1,0 +1,62 @@
+---
+kind: kubernetes
+type: web # https://captain-docs.cglcloud.com/guides/tutorials/hello_captain/tutorial.html#kind-type
+app: lataminvoiceworkflow
+team: lataminvoiceworkflow # https://harbourmaster-docs.cglcloud.com/team/overview.html
+docker_image: lataminvoiceworkflow/lataminvoiceworkflow # https://captain-docs.cglcloud.com/guides/tutorials/hello_captain/tutorial.html#docker-image
+# apm_id: APM123456
+internal: true # https://captain-docs.cglcloud.com/examples/kubernetes/internal-public.html
+replicas: # https://engineering.cargill.com/cloud/examples/kubernetes/scaling/replicas/
+  prod: 4 # this will be used in the prod environment 
+container_port: 8080 # https://captain-docs.cglcloud.com/guides/tutorials/hello_captain/tutorial.html#container-port
+healthcheck: # https://captain-docs.cglcloud.com/examples/kubernetes/healthcheck.html
+  path: /login
+dns:
+  zone: cglcloud
+  name: lataminvoiceworkflow
+
+headers: # https://captain-docs.cglcloud.com/examples/kubernetes/headers.html
+  csp:
+    default:
+      script-src:
+        self: true
+        unsafe-inline: true
+      style-src:
+        self: true
+        unsafe-inline: true
+      connect-src:
+        self: true
+        sources:
+          - https://api.cglcloud.com
+          - https://login.microsoftonline.com
+          - https://terraform-20260928075510361400000001.s3.us-east-1.amazonaws.com
+        
+        
+      img-src:
+        self: true
+        data: true
+        blob: true
+      font-src:
+        self: true
+      frame-src:
+        self: true
+        sources:
+          - https://terraform-20260928075510361400000001.s3.us-east-1.amazonaws.com
+   
+      worker-src:
+        self: true
+        data: true
+        blob: true
+      
+depends_on:
+  prod:
+    fqdn:
+      - address: api.cglcloud.com
+        protocol: "tcp"
+        ports:
+        - "443"
+      - address: login.microsoftonline.com
+        protocol: "tcp"
+        ports:
+        - "443"
+      

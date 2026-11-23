@@ -1,0 +1,248 @@
+version: "1"
+secrets:
+# DEV SECRETS
+  - name: VITE_API_BASE_URL_DEV
+    key: lataminvoiceworkflow/frontend/VITE_API_BASE_URL_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_CLIENT_ID_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_TENANT_ID_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_TENANT_ID_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_AUTHORITY_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_AUTHORITY_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_REDIRECT_URI_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_REDIRECT_URI_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_POST_LOGOUT_REDIRECT_URI_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_POST_LOGOUT_REDIRECT_URI_DEV
+    engine: native
+    type: repo
+  - name: VITE_MSAL_API_SCOPE_DEV
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_API_SCOPE_DEV
+    engine: native
+    type: repo
+
+# STG SECRETS
+  - name: VITE_API_BASE_URL_STG
+    key: lataminvoiceworkflow/frontend/VITE_API_BASE_URL_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_CLIENT_ID_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_TENANT_ID_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_TENANT_ID_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_AUTHORITY_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_AUTHORITY_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_REDIRECT_URI_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_REDIRECT_URI_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_POST_LOGOUT_REDIRECT_URI_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_POST_LOGOUT_REDIRECT_URI_STG
+    engine: native
+    type: repo
+  - name: VITE_MSAL_API_SCOPE_STG
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_API_SCOPE_STG
+    engine: native
+    type: repo
+
+# PROD SECRETS
+  - name: VITE_API_BASE_URL
+    key: lataminvoiceworkflow/frontend/VITE_API_BASE_URL
+    engine: native
+    type: repo
+  - name: VITE_MSAL_CLIENT_ID
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID
+    engine: native
+    type: repo
+  - name: VITE_MSAL_CLIENT_ID
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_CLIENT_ID
+    engine: native
+    type: repo
+  - name: VITE_MSAL_TENANT_ID
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_TENANT_ID
+    engine: native
+    type: repo
+  - name: VITE_MSAL_REDIRECT_URI
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_REDIRECT_URI
+    engine: native
+    type: repo
+  - name: VITE_MSAL_POST_LOGOUT_REDIRECT_URI
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_POST_LOGOUT_REDIRECT_URI
+    engine: native
+    type: repo
+  - name: VITE_MSAL_API_SCOPE
+    key: lataminvoiceworkflow/frontend/VITE_MSAL_API_SCOPE
+    engine: native
+    type: repo
+
+steps:
+  - name: install
+    image: node:24-alpine
+    commands:
+      - npm install
+
+  - name: build
+    image: node:24-alpine
+    commands:
+      - npm run build
+
+
+  - name: build docker image for development
+    image: docker-utilities.binrepo.cglcloud.in/enablement/docker-plugin:3-stable
+    ruleset:
+      if:
+        branch: [development]
+        event: [push]
+    secrets:
+          [
+            VITE_API_BASE_URL_DEV,
+            VITE_MSAL_CLIENT_ID_DEV,
+            VITE_MSAL_TENANT_ID_DEV,
+            VITE_MSAL_AUTHORITY_DEV,
+            VITE_MSAL_REDIRECT_URI_DEV,
+            VITE_MSAL_POST_LOGOUT_REDIRECT_URI_DEV,
+            VITE_MSAL_API_SCOPE_DEV
+          ]
+
+    parameters:
+      dockerfile: ./Dockerfile.DEV
+      team: lataminvoiceworkflow
+      repo: lataminvoiceworkflow-dev
+      tags:
+        - ${VELA_BUILD_COMMIT:0:7}
+      build_args:
+        - VITE_API_BASE_URL_DEV=${VITE_API_BASE_URL_DEV}
+        - VITE_MSAL_CLIENT_ID_DEV=${VITE_MSAL_CLIENT_ID_DEV}
+        - VITE_MSAL_TENANT_ID_DEV=${VITE_MSAL_TENANT_ID_DEV}
+        - VITE_MSAL_AUTHORITY_DEV=${VITE_MSAL_AUTHORITY_DEV}
+        - VITE_MSAL_REDIRECT_URI_DEV=${VITE_MSAL_REDIRECT_URI_DEV}
+        - VITE_MSAL_POST_LOGOUT_REDIRECT_URI_DEV=${VITE_MSAL_POST_LOGOUT_REDIRECT_URI_DEV}
+        - VITE_MSAL_API_SCOPE_DEV=${VITE_MSAL_API_SCOPE_DEV}
+
+  - name: build docker image for STG
+    image: docker-utilities.binrepo.cglcloud.in/enablement/docker-plugin:3-stable
+    ruleset:
+      if:
+        branch: [stage]
+        event: [push]
+    secrets:
+          [
+            VITE_API_BASE_URL_STG,
+            VITE_MSAL_CLIENT_ID_STG,
+            VITE_MSAL_TENANT_ID_STG,
+            VITE_MSAL_AUTHORITY_STG,
+            VITE_MSAL_REDIRECT_URI_STG,
+            VITE_MSAL_POST_LOGOUT_REDIRECT_URI_STG,
+            VITE_MSAL_API_SCOPE_STG
+          ]
+    parameters:
+      dockerfile: ./Dockerfile.STG
+      team: lataminvoiceworkflow
+      repo: lataminvoiceworkflow-stg
+      tags:
+        - ${VELA_BUILD_COMMIT:0:7}
+      build_args:
+        - VITE_API_BASE_URL_STG=${VITE_API_BASE_URL_STG}
+        - VITE_MSAL_CLIENT_ID_STG=${VITE_MSAL_CLIENT_ID_STG}
+        - VITE_MSAL_TENANT_ID_STG=${VITE_MSAL_TENANT_ID_STG}
+        - VITE_MSAL_AUTHORITY_STG=${VITE_MSAL_AUTHORITY_STG}
+        - VITE_MSAL_REDIRECT_URI_STG=${VITE_MSAL_REDIRECT_URI_STG}
+        - VITE_MSAL_POST_LOGOUT_REDIRECT_URI_STG=${VITE_MSAL_POST_LOGOUT_REDIRECT_URI_STG}
+        - VITE_MSAL_API_SCOPE_STG=${VITE_MSAL_API_SCOPE_STG}
+
+  - name: build docker image for Production
+    image: docker-utilities.binrepo.cglcloud.in/enablement/docker-plugin:3-stable
+    ruleset:
+      if:
+        branch: [main]
+        event: [push]
+    secrets:
+          [
+            VITE_API_BASE_URL,
+            VITE_MSAL_CLIENT_ID,
+            VITE_MSAL_TENANT_ID,
+            VITE_MSAL_AUTHORITY,
+            VITE_MSAL_REDIRECT_URI,
+            VITE_MSAL_POST_LOGOUT_REDIRECT_URI,
+            VITE_MSAL_API_SCOPE
+          ]
+    parameters:
+      dockerfile: ./Dockerfile
+      team: lataminvoiceworkflow
+      repo: lataminvoiceworkflow
+      tags:
+        - ${VELA_BUILD_COMMIT:0:7}
+      build_args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_MSAL_CLIENT_ID=${VITE_MSAL_CLIENT_ID}
+        - VITE_MSAL_TENANT_ID=${VITE_MSAL_TENANT_ID}
+        - VITE_MSAL_AUTHORITY=${VITE_MSAL_AUTHORITY}
+        - VITE_MSAL_REDIRECT_URI=${VITE_MSAL_REDIRECT_URI}
+        - VITE_MSAL_POST_LOGOUT_REDIRECT_URI=${VITE_MSAL_POST_LOGOUT_REDIRECT_URI}
+        - VITE_MSAL_API_SCOPE=${VITE_MSAL_API_SCOPE}
+
+  - name: deploy on Development Environment
+    image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
+    ruleset:
+      if:
+        branch: [development]
+        event: [push]
+    parameters:
+      captain_file: .captain-dev.yml
+      env: dev
+      version: "${VELA_BUILD_COMMIT:0:7}"
+      run_apply: true
+      edge_auth: false
+
+  - name: deploy on STG Environment
+    image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
+    ruleset:
+      if:
+        branch: [stage]
+        event: [push]
+    parameters:
+      captain_file: .captain-stg.yml
+      env: stage
+      version: "${VELA_BUILD_COMMIT:0:7}"
+      run_apply: true
+      edge_auth: false
+
+  - name: deploy on Production Environment
+    image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
+    ruleset:
+      if:
+        branch: [main]
+        event: [push]
+    parameters:
+      captain_file: .captain.yml
+      env: prod
+      version: "${VELA_BUILD_COMMIT:0:7}"
+      run_apply: true
+      edge_auth: false
+
+  - name: destroy
+    image: docker-utilities.binrepo.cglcloud.in/enablement/captain:1-stable
+    ruleset:
+      if:
+        event: [deployment]
+        target: "destroy-dev"
+    parameters:
+      destroy: true
+      env: dev
+      run_apply: true
+      version: '${VELA_BUILD_COMMIT:0:7}'
