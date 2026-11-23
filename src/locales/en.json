@@ -541,5 +541,19 @@
   "inboxStatusNew": "New",
   "inboxStatusNote": "Status note",
   "inboxStatusProcessed": "Processed",
-  "inboxTo": "To"
+  "inboxTo": "To",
+  "signInWithMicrosoft": "Sign in with Microsoft",
+  "redirectingToMicrosoft": "Redirecting to Microsoft…",
+  "microsoftSignInFailed": "Microsoft sign-in failed",
+  "sessionIdleLoggedOut": "You were signed out after a period of inactivity. Please sign in again.",
+  "sessionExpired": "Your session has ended. Please sign in again.",
+  "orSignInManually": "or sign in manually",
+  "appName": "LATAM Invoice Workflow",
+  "login": "Login",
+  "loginHeroTitleLine1": "Enterprise",
+  "loginHeroTitleLine2": "Service Portal",
+  "loginHeroSubtitle": "Access and track service requests, incidents, tasks, and knowledge resources from a single centralized workspace designed to simplify enterprise support.",
+  "loginSsoHint": "This portal doesn't require username and password and uses Active Directory ID for Authentication. Kindly press the below button using your work system.",
+  "showDemoAccounts": "Use a demo account",
+  "hideDemoAccounts": "Hide demo accounts"
 }

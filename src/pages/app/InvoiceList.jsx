@@ -524,7 +524,7 @@ const InvoiceList = () => {
   }, [invoices, sortColumn, sortDirection]);
 
   const renderSortIcon = (columnKey) => {
-    if (sortColumn !== columnKey) return <ArrowUpDown size={14} className="sort-icon" style={{ opacity: 0.4 }} />;
+    if (sortColumn !== columnKey) return <ArrowUpDown size={14} className="sort-icon opacity-40" />;
     return sortDirection === 'asc' ? <ChevronUp size={14} className="sort-icon" /> : <ChevronDown size={14} className="sort-icon" />;
   };
 
@@ -563,13 +563,13 @@ const InvoiceList = () => {
     { key: 'cuit', label: t('cuit'), sortKey: 'cuit' }
   ];
 
-  const cellInput = { padding: '0.3rem 0.5rem', fontSize: '0.82rem' };
+  const cellInput = 'p-[0.3rem_0.5rem] text-[0.82rem]';
 
   /** Bulk upload row for SJO; list cells keep a value from a file that is not a known option, marked "?". */
   const renderSjoBulkRow = (row, idx) => {
     const listCell = (key, list) => (
       <td>
-        <select className="input-field" style={{ ...cellInput, minWidth: '88px' }} value={row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.value)}>
+        <select className={`input-field ${cellInput} min-w-[88px]`} value={row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.value)}>
           <option value="">--</option>
           {row[key] && !list.some((o) => o.code === row[key]) && <option value={row[key]}>{row[key]} (?)</option>}
           {list.map((o) => <option key={o.id} value={o.code}>{o.code}</option>)}
@@ -578,35 +578,35 @@ const InvoiceList = () => {
     );
     const textCell = (key, max, width) => (
       <td>
-        <input type="text" className="input-field" style={{ ...cellInput, width }} maxLength={max} value={row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.value)} />
+        <input type="text" className={`input-field ${cellInput} ${width}`} maxLength={max} value={row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.value)} />
       </td>
     );
     return (
       <tr key={idx}>
-        {textCell('id', 60, '130px')}
+        {textCell('id', 60, 'w-[130px]')}
         {listCell('country', sjoOptions.countries)}
         {listCell('businessUnit', sjoOptions.businessUnits)}
         {listCell('erp', sjoOptions.erpSystems)}
-        {textCell('idFiscal', 30, '110px')}
-        {textCell('abNumber', 30, '95px')}
-        {textCell('abName', 255, '130px')}
+        {textCell('idFiscal', 30, 'w-[110px]')}
+        {textCell('abNumber', 30, 'w-[95px]')}
+        {textCell('abName', 255, 'w-[130px]')}
         <td>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+          <div className="flex flex-col gap-[0.15rem] text-[0.75rem] whitespace-nowrap">
             {SJO_FLAGS.map(([key, label]) => (
-              <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}>
-                <input type="checkbox" checked={!!row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.checked)} style={{ accentColor: 'var(--primary-color)' }} />
+              <label key={key} className="flex items-center gap-[0.3rem] cursor-pointer">
+                <input type="checkbox" className="accent-(--primary-color)" checked={!!row[key]} onChange={(e) => handleBulkRowChange(idx, key, e.target.checked)} />
                 {t(key, label)}
               </label>
             ))}
           </div>
         </td>
         <td>
-          <select className="input-field" style={cellInput} value={row.status} onChange={(e) => handleBulkRowChange(idx, 'status', e.target.value)}>
+          <select className={`input-field ${cellInput}`} value={row.status} onChange={(e) => handleBulkRowChange(idx, 'status', e.target.value)}>
             {statusOptions}
           </select>
         </td>
-        <td style={{ textAlign: 'center' }}>
-          <button type="button" className="btn btn-outline" style={{ padding: '0.3rem', color: '#ef4444', borderColor: 'transparent' }} onClick={() => handleRemoveBulkRow(idx)} title="Remove Row">
+        <td className="text-center">
+          <button type="button" className="btn btn-outline p-[0.3rem] text-[#ef4444] border-transparent" onClick={() => handleRemoveBulkRow(idx)} title="Remove Row">
             <Trash2 size={16} />
           </button>
         </td>
@@ -618,41 +618,39 @@ const InvoiceList = () => {
     <div>
       {/* Toast Notification Banner */}
       {toastMessage && (
-        <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', color: '#22c55e', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <div className="bg-[rgba(34,197,94,0.15)] border border-[#22c55e] text-[#22c55e] p-[0.6rem_1rem] rounded-[8px] text-[0.85rem] flex items-center gap-2 mb-5">
           <CheckCircle size={18} /> {toastMessage}
         </div>
       )}
 
       {/* Toolbar: Search Box, Filter & Actions (Single Create & Bulk Upload) */}
-      <div className="flex-between" style={{ marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="flex-between mb-5 gap-4 flex-wrap">
         {/* Search Box */}
-        <div style={{ position: 'relative', flex: '1', minWidth: '260px' }}>
+        <div className="relative flex-1 min-w-[260px]">
           <input
             type="text"
-            className="input-field"
+            className="input-field pl-[2.4rem]"
             placeholder={t('searchInvoicesPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            style={{ paddingLeft: '2.4rem' }}
           />
-          <Search size={18} color="var(--text-secondary)" style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={18} color="var(--text-secondary)" className="absolute left-[0.8rem] top-1/2 -translate-y-1/2" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Filter Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="flex items-center gap-2">
             <Filter size={18} color="var(--text-secondary)" />
             <select
-              className="input-field"
+              className="input-field w-[160px]"
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              style={{ width: '160px' }}
             >
               <option value="ALL">{t('allStatuses')}</option>
               {statusOptions}
@@ -661,18 +659,16 @@ const InvoiceList = () => {
 
           {/* Bulk Invoice Upload Button */}
           <button
-            className="btn btn-outline"
+            className="btn btn-outline inline-flex items-center gap-[0.4rem] border-(--primary-color) text-(--primary-color)"
             onClick={handleOpenBulkModal}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', borderColor: 'var(--primary-color)', color: 'var(--primary-color)' }}
           >
             <Upload size={18} /> {t('bulkUpload', 'Bulk Upload')}
           </button>
 
           {/* Single Create Invoice Button (ROSPBU: its own page with the ROSPBU fields) */}
           <button
-            className="btn btn-primary"
-            onClick={appId === 'rospbu' ? () => navigate(`/app/${appId}/invoices/new`) : handleOpenCreateModal}
-style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            className="btn btn-primary inline-flex items-center gap-[0.4rem]"
+            onClick={appId === 'rospbu' ? () => navigate(`/app/${appId}/invoices/new`) : handleOpenCreateModal}>
             <Plus size={18} /> {t('createInvoice', 'Create Invoice')}
           </button>
         </div>
@@ -696,13 +692,13 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
               <th className="sortable-header" onClick={() => handleSort('status')}>
                 {t('status')} {renderSortIcon('status')}
               </th>
-              <th style={{ textAlign: 'right' }}>{t('action')}</th>
+              <th className="text-right">{t('action')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length + 3} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>
+                <td colSpan={columns.length + 3} className="text-center p-10 text-(--text-secondary)">
                   {t('loadingInvoices')}
                 </td>
               </tr>
@@ -724,10 +720,9 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                     {getStatusLabel(inv.status)}
                   </span>
                 </td>
-                <td style={{ textAlign: 'right' }}>
+                <td className="text-right">
                   <button
-                    className="btn btn-outline"
-                    style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
+                    className="btn btn-outline p-[0.2rem_0.6rem] text-[0.75rem]"
                     onClick={() => {
                       const cleanPath = location.pathname.replace(/\/$/, '');
                       const targetUrl = cleanPath.includes('/invoices')
@@ -745,7 +740,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
         </table>
 
         {!loading && sortedInvoices.length === 0 && (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          <div className="p-10 text-center text-(--text-secondary)">
             {t('noInvoicesFound')}
           </div>
         )}
@@ -758,15 +753,14 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
         </div>
 
         <div className="pagination-controls">
-          <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: '0.5rem' }}>{t('rowsPerPage')}</label>
+          <label className="text-[0.85rem] text-(--text-secondary) mr-2">{t('rowsPerPage')}</label>
           <select
-            className="input-field"
+            className="input-field w-[70px] p-[0.25rem_0.5rem] mr-4"
             value={limit}
             onChange={(e) => {
               setLimit(parseInt(e.target.value));
               setPage(1);
             }}
-            style={{ width: '70px', padding: '0.25rem 0.5rem', marginRight: '1rem' }}
           >
             <option value="5">5</option>
             <option value="10">10</option>
@@ -796,14 +790,14 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
 
       {/* Single Create Invoice Modal */}
       {showCreateModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: sjo ? '660px' : '580px', maxHeight: '92vh', overflowY: 'auto', padding: '2rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
-            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.75)] backdrop-blur-[8px] z-1000 flex items-center justify-center p-4">
+          <div className={`glass-panel w-full ${sjo ? 'max-w-[660px]' : 'max-w-[580px]'} max-h-[92vh] overflow-y-auto p-8 bg-(--bg-color) border border-(--border-color) shadow-[0_25px_50px_rgba(0,0,0,0.5)]`}>
+            <div className="flex-between mb-5">
+              <h3 className="text-[1.25rem] text-(--text-primary) flex items-center gap-2">
                 <Plus size={20} color="var(--primary-color)" />
                 {t('createNewInvoice', 'Create New Invoice')} ({appName})
               </h3>
-              <button type="button" className="btn btn-outline" style={{ padding: '4px 8px' }} onClick={() => setShowCreateModal(false)}>
+              <button type="button" className="btn btn-outline p-[4px_8px]" onClick={() => setShowCreateModal(false)}>
                 <X size={16} />
               </button>
             </div>
@@ -842,7 +836,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
 
               {!sjo && (
               <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-[1fr_1fr] gap-4">
                 <div className="input-group">
                   <label>{t('invoiceId')}</label>
                   <input
@@ -868,7 +862,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-[1fr_1fr] gap-4">
                 <div className="input-group">
                   <label>{t('cuit')}</label>
                   <input
@@ -894,7 +888,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-[1fr_1fr] gap-4">
                 <div className="input-group">
                   <label>{t('firstInvoice')}</label>
                   <input
@@ -916,7 +910,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-[1fr_1fr] gap-4">
                 <div className="input-group">
                   <label>{t('amount', 'Amount ($)')}</label>
                   <input
@@ -943,12 +937,12 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
               )}
 
               {createError && (
-                <div className="form-error" style={{ marginTop: '1rem' }}>
+                <div className="form-error mt-4">
                   <AlertCircle size={15} /> {createError}
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <div className="flex justify-end gap-3 mt-6">
                 <button type="button" className="btn btn-outline" onClick={() => setShowCreateModal(false)}>
                   {t('cancel')}
                 </button>
@@ -963,77 +957,75 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
 
       {/* Bulk Invoice Upload Modal */}
       {showBulkModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '880px', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', boxShadow: '0 25px 50px rgba(0,0,0,0.6)', borderRadius: '12px' }}>
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.8)] backdrop-blur-[8px] z-1000 flex items-center justify-center p-6">
+          <div className="glass-panel w-full max-w-[880px] max-h-[90vh] overflow-y-auto p-8 bg-(--bg-color) border border-(--border-color) shadow-[0_25px_50px_rgba(0,0,0,0.6)] rounded-[12px]">
 
             {/* Modal Header */}
-            <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+            <div className="flex-between mb-4 border-b border-(--border-color) pb-4">
               <div>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: '600' }}>
+                <h3 className="text-[1.3rem] text-(--text-primary) flex items-center gap-[0.6rem] font-semibold">
                   <Upload size={22} color="var(--primary-color)" />
                   {t('bulkUploadTitle', 'Bulk Invoice Upload')} ({appName})
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                <p className="text-[0.85rem] text-(--text-secondary) mt-1">
                   {t('bulkUploadSubtitle', 'Upload CSV, JSON, TXT, or PDF files to import multiple invoices at once.')}
                 </p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="btn btn-outline"
+                  className="btn btn-outline text-[0.82rem] p-[0.4rem_0.8rem] flex items-center gap-[0.4rem]"
                   onClick={handleDownloadTemplate}
-                  style={{ fontSize: '0.82rem', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                 >
                   <Download size={14} /> {t('downloadTemplate', 'Download CSV Template')}
                 </button>
-                <button type="button" className="btn btn-outline" style={{ padding: '6px 10px' }} onClick={() => setShowBulkModal(false)}>
+                <button type="button" className="btn btn-outline p-[6px_10px]" onClick={() => setShowBulkModal(false)}>
                   <X size={18} />
                 </button>
               </div>
             </div>
 
             {/* File Dropzone Box */}
-            <div style={{ border: '2px dashed var(--border-color)', borderRadius: '8px', padding: '1.5rem', textAlign: 'center', background: 'rgba(255, 255, 255, 0.02)', marginBottom: '1.5rem', position: 'relative', cursor: 'pointer' }}>
+            <div className="border-2 border-dashed border-(--border-color) rounded-[8px] p-6 text-center bg-[rgba(255,255,255,0.02)] mb-6 relative cursor-pointer">
               <input
                 type="file"
                 accept=".csv,.json,.txt,.pdf"
                 onChange={handleFileUpload}
-                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
               />
-              <FileUp size={36} color="var(--primary-color)" style={{ marginBottom: '0.5rem' }} />
-              <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+              <FileUp size={36} color="var(--primary-color)" className="mb-2" />
+              <div className="font-semibold text-(--text-primary) text-[0.95rem]">
                 {bulkFileName ? `Selected: ${bulkFileName}` : t('dragDropFile', 'Drag and drop file here, or click to browse')}
               </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+              <div className="text-[0.8rem] text-(--text-secondary) mt-1">
                 {t('supportedFormats', 'Supports CSV, JSON, TXT, or PDF files')}
               </div>
             </div>
 
             {/* Error Banner if any */}
             {bulkError && (
-              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.6rem 1rem', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <div className="bg-[rgba(239,68,68,0.15)] border border-[#ef4444] text-[#ef4444] p-[0.6rem_1rem] rounded-[8px] text-[0.85rem] flex items-center gap-2 mb-4">
                 <AlertCircle size={18} /> {bulkError}
               </div>
             )}
 
             {/* Bulk Batch Preview Table */}
-            <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="flex-between mb-3">
+              <span className="text-[0.9rem] font-semibold text-(--text-primary) flex items-center gap-2">
                 <FileSpreadsheet size={18} color="var(--primary-color)" />
                 {t('readyToUpload', { count: bulkData.length })}
               </span>
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline text-[0.8rem] p-[0.35rem_0.75rem] flex items-center gap-[0.3rem]"
                 onClick={handleAddBulkRow}
-                style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
               >
                 <Plus size={14} /> {t('addRow', 'Add Row')}
               </button>
             </div>
 
-            <div className="table-container" style={{ maxHeight: '280px', overflowY: 'auto', marginBottom: '1.5rem', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-              <table style={{ fontSize: '0.85rem' }}>
+            <div className="table-container max-h-[280px] overflow-y-auto mb-6 border border-(--border-color) rounded-[8px]">
+              <table className="text-[0.85rem]">
                 <thead>
                   {sjo ? (
                     <tr>
@@ -1046,7 +1038,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                       <th>{t('abName', 'A.B. Name')}</th>
                       <th>{t('flags', 'Flags')}</th>
                       <th>{t('status')}</th>
-                      <th style={{ textAlign: 'center', width: '50px' }}>{t('action')}</th>
+                      <th className="text-center w-[50px]">{t('action')}</th>
                     </tr>
                   ) : (
                   <tr>
@@ -1056,14 +1048,14 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                     <th>{t('countryStation')}</th>
                     <th>{t('amount')}</th>
                     <th>{t('status')}</th>
-                    <th style={{ textAlign: 'center', width: '50px' }}>{t('action')}</th>
+                    <th className="text-center w-[50px]">{t('action')}</th>
                   </tr>
                   )}
                 </thead>
                 <tbody>
                   {bulkData.length === 0 ? (
                     <tr>
-                      <td colSpan={sjo ? 10 : 7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                      <td colSpan={sjo ? 10 : 7} className="text-center p-8 text-(--text-secondary)">
                         {t('noInvoicesToUpload', 'No invoices ready for upload.')}
                       </td>
                     </tr>
@@ -1073,16 +1065,14 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                         <td>
                           <input
                             type="text"
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem]"
                             value={row.id}
                             onChange={(e) => handleBulkRowChange(idx, 'id', e.target.value)}
                           />
                         </td>
                         <td>
                           <select
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem]"
                             value={row.vendorName}
                             onChange={(e) => handleBulkRowChange(idx, 'vendorName', e.target.value)}
                           >
@@ -1094,16 +1084,14 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                         <td>
                           <input
                             type="text"
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem]"
                             value={row.cuit}
                             onChange={(e) => handleBulkRowChange(idx, 'cuit', e.target.value)}
                           />
                         </td>
                         <td>
                           <select
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem]"
                             value={row.countryStation}
                             onChange={(e) => handleBulkRowChange(idx, 'countryStation', e.target.value)}
                           >
@@ -1115,27 +1103,24 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                         <td>
                           <input
                             type="text"
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem', width: '90px' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem] w-[90px]"
                             value={row.amount}
                             onChange={(e) => handleBulkRowChange(idx, 'amount', e.target.value)}
                           />
                         </td>
                         <td>
                           <select
-                            className="input-field"
-                            style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem' }}
+                            className="input-field p-[0.3rem_0.5rem] text-[0.82rem]"
                             value={row.status}
                             onChange={(e) => handleBulkRowChange(idx, 'status', e.target.value)}
                           >
                             {statusOptions}
                           </select>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td className="text-center">
                           <button
                             type="button"
-                            className="btn btn-outline"
-                            style={{ padding: '0.3rem', color: '#ef4444', borderColor: 'transparent' }}
+                            className="btn btn-outline p-[0.3rem] text-[#ef4444] border-transparent"
                             onClick={() => handleRemoveBulkRow(idx)}
                             title="Remove Row"
                           >
@@ -1150,20 +1135,19 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="flex-between" style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            <div className="flex-between border-t border-(--border-color) pt-4">
+              <div className="text-[0.82rem] text-(--text-secondary)">
                 {!sjo && bulkData.length > 0 && `Batch total: $${bulkData.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               </div>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div className="flex gap-3">
                 <button type="button" className="btn btn-outline" onClick={() => setShowBulkModal(false)} disabled={bulkUploading}>
                   {t('cancel')}
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary flex items-center gap-2"
                   onClick={handleBulkSubmit}
                   disabled={bulkUploading || bulkData.length === 0}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 >
                   <Upload size={16} />
                   {bulkUploading ? t('uploading', 'Uploading...') : `${t('uploadInvoices', 'Upload Invoices')} (${bulkData.length})`}

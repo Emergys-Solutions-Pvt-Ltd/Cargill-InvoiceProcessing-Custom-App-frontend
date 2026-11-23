@@ -36,12 +36,12 @@ const IntegrationList = ({ providerType }) => {
 
   return (
     <div>
-      <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="flex-between page-header gap-4 flex-wrap">
         <div>
           <h1 className="page-title">{t(ui.titleKey, ui.title)}</h1>
           <p className="page-subtitle">{t(ui.subtitleKey, ui.subtitle)}</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.6rem' }}>
+        <div className="flex gap-[0.6rem]">
           <button type="button" className="btn btn-outline" onClick={() => setReloadKey((k) => k + 1)} disabled={loading}>
             <RefreshCw size={15} className={loading ? 'spin' : ''} /> {t('refresh', 'Refresh')}
           </button>

@@ -26,6 +26,104 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-23 — Login page redesign: split brand panel + SSO-first (Feature: login-redesign)
+**Agent:** frontend-agent · **Status:** Done (build + lint; checked in the browser under the strict CSP, with and without MSAL settings) · **Handoffs:** none
+
+- `src/pages/Login.jsx` — left green "Enterprise Service Portal" panel (hidden below `md`), right panel: Cargill logo, title
+  "LATAM Invoice Workflow", SSO hint text and a full-width "Login" button (Microsoft Entra ID). Password form shown below only when
+  the API reports password login enabled; demo accounts collapsed behind "Use a demo account".
+- `src/index.css` — `.login-hero` (gradient + hexagon pattern as a `data:` SVG; no inline CSS).
+- Locales: `appName`, `login`, `loginHeroTitleLine1/2`, `loginHeroSubtitle`, `loginSsoHint`, `showDemoAccounts`, `hideDemoAccounts`.
+- To match the mock-up exactly (SSO button only) run the API with `AUTH_PASSWORD_LOGIN_ENABLED=false`.
+
+---
+
+## 2026-11-23 — MUI + Tailwind CSS, no inline CSS, strict nonce-based CSP (Feature: ui-mui-tailwind)
+**Agent:** frontend-agent · **Status:** Done (build + lint; pages checked in the browser under the strict CSP with no API) · **Handoffs:** none
+
+### What changed
+- Dependencies: `@mui/material` 9, `@emotion/react`, `@emotion/styled`, `@emotion/cache`, `tailwindcss` 4 + `@tailwindcss/vite`,
+  `@fontsource/inter` (Inter self-hosted; the Google Fonts `@import` is gone - no third-party requests).
+- `src/theme/muiTheme.js`, `src/theme/StyleProvider.jsx` (new) — MUI theme with the Cargill palette; Emotion cache stamped with the
+  CSP nonce from `<meta name="csp-nonce">` (`index.html`). `main.jsx` wraps the app; `vite.config.js` adds the Tailwind plugin.
+- `src/index.css` — Tailwind theme + utilities (no preflight, `important` so classes keep the precedence inline styles had).
+- `Modal` (MUI Dialog: focus trap, Escape, backdrop), `ConfirmDialog` (MUI Buttons + Alert), `Pager` (MUI TablePagination),
+  `AuthRoute` (MUI spinner), `Login` (MUI Paper / TextField / Button / Alert / Divider) rebuilt on MUI.
+- All 225 `style={...}` props in 22 files replaced with Tailwind classes - `grep "style=" src` finds none.
+- `nginx.conf` — strict CSP on index.html: `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-$request_id'`, images /
+  fonts self + data/blob, `connect-src`/`frame-src` add login.microsoftonline.com (MSAL), `object-src 'none'`; nonce written into
+  index.html with `sub_filter`. Assets get `default-src 'none'`.
+- Locales: `orSignInManually`.
+
+### Why
+Request: use MUI and Tailwind CSS; avoid inline CSS that VAPT reports (and allow a CSP without 'unsafe-inline').
+
+### Still to do / known issues
+- Page layouts still use the `index.css` classes (tables, tabs, forms); moving those screens to MUI components is a separate step.
+- `InvoiceList.jsx` has its own pager markup (not the shared `Pager`).
+- Not checked against a running API or in the nginx container (Docker unavailable); run `nginx -t` and look for CSP errors in the
+  browser console after the next build. A custom `VITE_MSAL_AUTHORITY` host must be added to `connect-src` / `frame-src`.
+- The login page still pre-fills the demo admin credentials (VAPT will flag them); hide with `AUTH_PASSWORD_LOGIN_ENABLED=false`.
+
+---
+
+## 2026-11-23 — Fix CrashLoopBackOff on Kubernetes (dev): /api proxy removed, image has no backend dependency (Feature: container-security)
+**Agent:** frontend-agent · **Status:** Done in source; not built (no container engine running) · **Handoffs:** none
+
+### What changed
+- `nginx.conf` — `proxy_pass http://backend:4000` removed (it made nginx exit at start-up where no "backend" host exists:
+  Kubernetes dev, "Back-off restarting failed container lataminvoiceworkflow", rolled back). nginx serves the React build
+  only; `/api/` answers 404 here and must be routed to the API in front of the container (ingress).
+- `docker-compose.yml` — `backend:host-gateway` removed; frontend-only compose has no API (use the full stack or `npm run dev`).
+- `../docker-compose.yml` (workspace root, not in git) — new `proxy` service (web image + inline nginx config) routes
+  `/api/` -> api and the rest -> web on port 8080, like the ingress; the `backend` network alias is gone.
+- `Dockerfile` (+ `.DEV` / `.STG`) — nginx user created with fixed uid/gid 101 (as in nginx-unprivileged) and `USER 101:101`,
+  so Kubernetes `runAsNonRoot` / `runAsUser: 101` accept the image.
+
+### Why
+Captain dev deployment failed after the "Docker Issues" commits (pod restart back-off, rollback).
+
+### Still to do / known issues
+- Confirm with the pod log (`kubectl logs <pod> --previous`) after redeploying.
+
+---
+
+## 2026-11-23 — Sign in with Microsoft (Entra ID), 30-minute inactivity logout, server-side logout (Feature: sso-entra-id)
+**Agent:** frontend-agent · **Status:** Done (build + lint; idle logout checked in the browser; Microsoft sign-in not tried against a real tenant) · **Handoffs:** none
+
+### What changed
+- `src/services/msal.service.js` (new) — `@azure/msal-browser` (redirect flow, PKCE, sessionStorage cache) from `VITE_MSAL_*`;
+  completes the redirect at app start; `clearMicrosoftSession` removes Microsoft tokens from the browser.
+- `src/services/auth.service.js` — `loginWithMicrosoft` (POST `/auth/sso`), `logout` now revokes the session on the API
+  (`POST /auth/logout`) and clears the app token, user, activity stamp and MSAL cache; activity / idle helpers.
+- `src/context/AuthContext.jsx` — finishes the Microsoft redirect; inactivity timer (mouse/keyboard/scroll/touch, shared by
+  all tabs through localStorage) signs out after `sessionIdleTimeoutMinutes` (API, default 30); keep-alive `/auth/me` every
+  5 min while active; sign-out in one tab signs out the others.
+- `src/pages/Login.jsx` — "Sign in with Microsoft" button (shown when MSAL is configured and the API has SSO on);
+  password form / demo accounts hidden when the API disables password login; idle / expired notices;
+  the old "Login with Active Directory" checkbox removed.
+- `src/services/network.service.js` — `skipAuthRedirect` request option (sign-in / sign-out handle their own 401; a wrong
+  password no longer reloads the page); 401 stores an "expired" notice.
+- `src/locales/en.json`, `es.json` — 5 keys. `.env.example` (new), `Dockerfile` (+ `.DEV` / `.STG`) comments,
+  `.dockerignore` (`Dockerfile*`), `docker-compose.yml` build args `VITE_MSAL_*`.
+
+### Why
+Request: Login with SSO (Azure Entra ID), 30-minute inactivity logout, token invalid after logout.
+
+### Cross-repo impact
+- backend: needs `/auth/options`, `/auth/sso`, `/auth/logout` (same feature).
+
+### New env vars / dependencies / commands for the user
+- Build-time: `VITE_MSAL_CLIENT_ID`, `VITE_MSAL_TENANT_ID`, `VITE_MSAL_AUTHORITY`, `VITE_MSAL_REDIRECT_URI`,
+  `VITE_MSAL_POST_LOGOUT_REDIRECT_URI`, `VITE_MSAL_API_SCOPE` (already Docker build args). Dependency `@azure/msal-browser` 5.
+- The code now reads `import.meta.env` (msal.service.js only).
+
+### Still to do / known issues
+- Sign-out clears the Microsoft tokens in this browser but does not end the Microsoft session itself (no redirect to
+  Microsoft): the next "Sign in with Microsoft" may be one click.
+
+---
+
 ## 2026-11-23 — Frontend image: critical CVEs fixed (Feature: container-security)
 **Agent:** frontend-agent · **Status:** Done in source; image not rebuilt / rescanned yet (Docker unavailable) · **Handoffs:** none
 

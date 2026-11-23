@@ -4,7 +4,7 @@ dist
 .env.*
 *.log
 create_pdfs.py
-Dockerfile
+Dockerfile*
 docker-compose*.yml
 .dockerignore
 .git

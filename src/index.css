@@ -1,4 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Tailwind CSS v4 - theme tokens + utilities only (no preflight: the reset below and MUI keep their own base).
+   Utilities are !important so a class that replaced an inline style keeps the same precedence it had.
+   Inter is self-hosted (@fontsource/inter, imported in main.jsx): no third-party font requests (CSP). */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) important;
 
 /* Cargill "Requests" theme: warm off-white canvas, white bordered cards, compact tables,
    blue record links, Cargill-green accents and soft status pills. */
@@ -2230,4 +2235,15 @@ button.cell-link { background: none; border: none; padding: 0; font: inherit; }
   .rospbu-edit-control > .input-field {
     max-width: none;
   }
+}
+
+/* Login brand panel: dark green gradient + hexagon pattern (data: image, allowed by the CSP img-src) */
+.login-hero {
+  background-color: #0b3d1f;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='194' viewBox='0 0 56 97'%3E%3Cpath d='M28 65L0 49V16L28 0l28 16v33L28 65zm0 0v32' fill='none' stroke='rgba(255,255,255,0.06)' stroke-width='0.6'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #03200f 0%, #0d4524 45%, #155a30 100%);
+  background-size: 112px 194px, cover;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: calc(100vh - 2.5rem);
 }

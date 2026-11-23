@@ -323,7 +323,7 @@ const InvoiceDetails = () => {
     return <div className="form-error">{loadError}</div>;
   }
   if (!invoice || !form) {
-    return <div style={{ padding: '2rem', color: 'var(--text-secondary)' }}>{t('loadingInvoiceDetails', 'Loading invoice details...')}</div>;
+    return <div className="p-8 text-(--text-secondary)">{t('loadingInvoiceDetails', 'Loading invoice details...')}</div>;
   }
 
   const roleLabel = (user?.role || '').toLowerCase() === 'admin' ? t('roleAdmin', 'Admin') : t('roleUser', 'User');
@@ -333,8 +333,8 @@ const InvoiceDetails = () => {
 
   return (
     <div>
-      <div className="tab-bar" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex' }}>
+      <div className="tab-bar justify-between items-center">
+        <div className="flex">
           <button
             type="button"
             className={`tab-link ${activeTab === 'details' ? 'active' : ''}`}
@@ -354,14 +354,14 @@ const InvoiceDetails = () => {
           )}
         </div>
         {activeTab === 'ccpp' && (
-          <button type="button" className="btn btn-primary" style={{ marginBottom: '0.4rem' }} onClick={() => ccppTabRef.current?.openAdd()}>
+          <button type="button" className="btn btn-primary mb-[0.4rem]" onClick={() => ccppTabRef.current?.openAdd()}>
             <Plus size={15} /> {t('addCcppEntry', 'Add New Entry')}
           </button>
         )}
       </div>
 
       {notice && (
-        <div className={notice.ok ? 'form-success' : 'form-error'} style={{ margin: '0 0 0.9rem' }}>
+        <div className={`${notice.ok ? 'form-success' : 'form-error'} m-[0_0_0.9rem]`}>
           {notice.ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />} {notice.message}
         </div>
       )}
@@ -397,7 +397,7 @@ const InvoiceDetails = () => {
                   </select>
                 </Field>
               </div>
-              <div style={{ padding: '0 1.25rem' }}>
+              <div className="py-0 px-5">
                 <SjoFlagInputs form={form} onChange={setForm} />
               </div>
               <div className="su-grid">
@@ -427,7 +427,7 @@ const InvoiceDetails = () => {
                 <input type="number" min="0" step="0.01" className="input-field" value={form.claimNumber} onChange={set('claimNumber')} />
               </Field>
               <Field label={t('additionalInfo', 'Additional Info.')}>
-                <textarea className="input-field" rows={3} maxLength={1000} value={form.additionalInfo} onChange={set('additionalInfo')} style={{ resize: 'vertical' }} />
+                <textarea className="input-field resize-y" rows={3} maxLength={1000} value={form.additionalInfo} onChange={set('additionalInfo')} />
               </Field>
 
               <Field label={t('emailReceptionDate', 'Email Reception Date')}><ReadOnly value={invoice.emailReceptionDateTime} /></Field>

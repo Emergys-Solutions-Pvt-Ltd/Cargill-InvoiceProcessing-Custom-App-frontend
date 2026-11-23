@@ -40,7 +40,7 @@ const AppLayout = () => {
         )}
       </div>
 
-      <div className="glass" style={{ padding: '1.25rem' }}>
+      <div className="glass p-5">
         <Outlet context={{ appName, appId }} />
       </div>
     </div>

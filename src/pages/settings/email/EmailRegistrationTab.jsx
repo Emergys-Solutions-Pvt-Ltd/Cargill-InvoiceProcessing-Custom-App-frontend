@@ -185,11 +185,11 @@ const EmailRegistrationTab = () => {
   return (
     <div className="email-tab">
       <section className="email-section">
-        <div className="flex-between" style={{ gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="flex-between gap-3 flex-wrap">
           <h3>{t('emailRegisteredMailboxes', 'Registered mailboxes')}</h3>
           <div className="email-actions-row">
             {toast && (
-              <span className={`badge ${toast.isError ? 'badge-danger' : 'badge-success'}`} style={{ gap: '0.35rem' }}>
+              <span className={`badge gap-[0.35rem] ${toast.isError ? 'badge-danger' : 'badge-success'}`}>
                 {toast.isError ? <AlertCircle size={13} /> : <CheckCircle size={13} />} {toast.message}
               </span>
             )}
@@ -212,15 +212,15 @@ const EmailRegistrationTab = () => {
                     <th>{t('emailTargetApp', 'Target application')}</th>
                     <th>{t('status', 'Status')}</th>
                     <th>{t('emailLastPolled', 'Last polled')}</th>
-                    <th style={{ textAlign: 'right' }}>{t('actions', 'Actions')}</th>
+                    <th className="text-right">{t('actions', 'Actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>{t('loading', 'Loading...')}</td></tr>
+                    <tr><td colSpan="6" className="text-center p-8 text-(--text-secondary)">{t('loading', 'Loading...')}</td></tr>
                   ) : mailboxes.map((m) => (
                     <tr key={m.id}>
-                      <td style={{ fontWeight: 500 }}>{m.address}</td>
+                      <td className="font-medium">{m.address}</td>
                       <td className="email-mono">{m.folder}</td>
                       <td>{moduleLabel(m.moduleName, m.moduleSlug)}</td>
                       <td>
@@ -243,7 +243,7 @@ const EmailRegistrationTab = () => {
                           )}
                         </span>
                       </td>
-                      <td style={{ textAlign: 'right' }}>
+                      <td className="text-right">
                         <span className="email-row-actions">
                           <button type="button" className="row-action" title={t('edit', 'Edit')}
                             aria-label={`${t('edit', 'Edit')} ${m.address}`} onClick={() => startEdit(m)}>
@@ -260,7 +260,7 @@ const EmailRegistrationTab = () => {
                 </tbody>
               </table>
               {!loading && mailboxes.length === 0 && (
-                <p className="email-note" style={{ padding: '1rem', textAlign: 'center' }}>{t('emailNoMailboxes', 'No mailbox registered yet.')}</p>
+                <p className="email-note p-4 text-center">{t('emailNoMailboxes', 'No mailbox registered yet.')}</p>
               )}
             </div>
 

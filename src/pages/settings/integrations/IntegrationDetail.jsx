@@ -250,7 +250,7 @@ const IntegrationDetail = ({ providerType = 'sap-odata' }) => {
     return (
       <div>
         <button type="button" className="btn btn-outline" onClick={() => navigate(basePath)}><ArrowLeft size={15} /> {t('back', 'Back')}</button>
-        <div className="form-error" style={{ marginTop: '1rem' }}><AlertCircle size={15} /> {loadError}</div>
+        <div className="form-error mt-4"><AlertCircle size={15} /> {loadError}</div>
       </div>
     );
   }
@@ -261,7 +261,7 @@ const IntegrationDetail = ({ providerType = 'sap-odata' }) => {
 
   return (
     <div>
-      <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div className="flex-between page-header gap-4 flex-wrap items-start">
         <div>
           <button type="button" className="btn-link sap-back" onClick={leave}>
             <ArrowLeft size={14} /> {t(ui.titleKey, ui.title)}
@@ -322,7 +322,7 @@ const IntegrationDetail = ({ providerType = 'sap-odata' }) => {
         })}
       </div>
 
-      <div className="glass" style={{ padding: '1.25rem' }}>
+      <div className="glass p-5">
         {tab === 'dashboard' && !isNew && <DashboardTab integration={integration} onSyncNow={syncNow} syncing={syncing} notify={notify} onSummary={onSummary} />}
         {tab === 'connection' && <ConnectionTab {...tabProps} />}
         {tab === 'authentication' && (

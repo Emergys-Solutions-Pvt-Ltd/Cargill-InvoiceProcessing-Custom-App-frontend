@@ -76,7 +76,7 @@ const IgnoreDialog = ({ onConfirm, onClose }) => {
         </div>
       </div>
       {error && (
-        <div className="form-error" style={{ marginTop: '0.75rem' }}>
+        <div className="form-error mt-3">
           <AlertCircle size={15} /> {error}
         </div>
       )}

@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
-import { AlertCircle } from 'lucide-react';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Modal from './Modal';
 import { LanguageContext } from '../context/LanguageContext';
 
@@ -26,20 +27,20 @@ const ConfirmDialog = ({ title, message, confirmLabel, onConfirm, onClose }) => 
   };
 
   return (
-    <Modal title={title} onClose={onClose} width={420}>
-      <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{message}</p>
+    <Modal title={title} onClose={busy ? () => {} : onClose} width={420}>
+      <p className="text-sm leading-normal text-(--text-secondary)">{message}</p>
       {error && (
-        <div className="form-error" style={{ marginTop: '1rem' }}>
-          <AlertCircle size={15} /> {error}
-        </div>
+        <Alert severity="error" className="mt-4">
+          {error}
+        </Alert>
       )}
       <div className="modal-actions">
-        <button type="button" className="btn btn-outline" onClick={onClose} disabled={busy}>
+        <Button variant="outlined" color="inherit" onClick={onClose} disabled={busy}>
           {t('cancel', 'Cancel')}
-        </button>
-        <button type="button" className="btn btn-danger" onClick={handleConfirm} disabled={busy}>
+        </Button>
+        <Button variant="contained" color="error" onClick={handleConfirm} disabled={busy}>
           {busy ? t('working', 'Working...') : confirmLabel || t('delete', 'Delete')}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

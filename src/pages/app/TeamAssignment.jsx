@@ -173,7 +173,7 @@ const TeamAssignment = ({ appId: appIdProp }) => {
   }, [members, sortColumn, sortDirection]);
 
   const renderSortIcon = (columnKey) => {
-    if (sortColumn !== columnKey) return <ArrowUpDown size={13} className="sort-icon" style={{ opacity: 0.4 }} />;
+    if (sortColumn !== columnKey) return <ArrowUpDown size={13} className="sort-icon opacity-40" />;
     return sortDirection === 'asc' ? <ChevronUp size={13} className="sort-icon" /> : <ChevronDown size={13} className="sort-icon" />;
   };
 
@@ -182,26 +182,24 @@ const TeamAssignment = ({ appId: appIdProp }) => {
   const toggleOne = (id) => setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
 
   return (
-    <div className="glass-panel" style={{ padding: '1.25rem' }}>
+    <div className="glass-panel p-5">
       {/* Toolbar: team + search on the left, user lookup + Add / Remove on the right */}
       <div className="team-toolbar">
         <div className="team-toolbar-left">
           <select
-            className="input-field"
+            className="input-field w-[210px]"
             value={team}
             onChange={(e) => { setTeam(e.target.value); setPage(1); }}
-            style={{ width: 210 }}
             aria-label={t('team', 'Team')}
           >
             {teams.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>
           <input
             type="text"
-            className="input-field"
+            className="input-field w-[220px]"
             placeholder={`${t('search', 'Search')}...`}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            style={{ width: 220 }}
             aria-label={t('searchMemberPlaceholder')}
           />
         </div>
@@ -225,8 +223,8 @@ const TeamAssignment = ({ appId: appIdProp }) => {
               <div className="picker-list">
                 {lookupResults.map((u) => (
                   <button type="button" key={u.id} className="picker-item" onClick={() => pickUser(u)}>
-                    <span style={{ fontWeight: 500 }}>{u.name}</span>
-                    <span style={{ color: 'var(--text-secondary)' }}>{u.email}</span>
+                    <span className="font-medium">{u.name}</span>
+                    <span className="text-(--text-secondary)">{u.email}</span>
                   </button>
                 ))}
               </div>
@@ -251,8 +249,8 @@ const TeamAssignment = ({ appId: appIdProp }) => {
         <table>
           <thead>
             <tr>
-              <th style={{ width: 44, textAlign: 'center' }}>
-                <input type="checkbox" checked={isAllSelected} onChange={(e) => toggleAll(e.target.checked)} aria-label="Select all" style={{ accentColor: 'var(--primary-color)' }} />
+              <th className="w-[44px] text-center">
+                <input type="checkbox" checked={isAllSelected} onChange={(e) => toggleAll(e.target.checked)} aria-label="Select all" className="accent-(--primary-color)" />
               </th>
               <th className="sortable-header" onClick={() => handleSort('name')}>{t('userName')} {renderSortIcon('name')}</th>
               <th className="sortable-header" onClick={() => handleSort('email')}>{t('userEmail')} {renderSortIcon('email')}</th>
@@ -261,21 +259,21 @@ const TeamAssignment = ({ appId: appIdProp }) => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>{t('loadingTeamAccess')}</td></tr>
+              <tr><td colSpan="4" className="text-center p-8 text-(--text-secondary)">{t('loadingTeamAccess')}</td></tr>
             ) : sortedMembers.map((member) => (
-              <tr key={member.id} style={{ background: selectedIds.includes(member.id) ? 'rgba(var(--primary-rgb), 0.05)' : undefined }}>
-                <td style={{ textAlign: 'center' }}>
-                  <input type="checkbox" checked={selectedIds.includes(member.id)} onChange={() => toggleOne(member.id)} aria-label={`Select ${member.name}`} style={{ accentColor: 'var(--primary-color)' }} />
+              <tr key={member.id} className={selectedIds.includes(member.id) ? 'bg-[rgba(var(--primary-rgb),0.05)]' : undefined}>
+                <td className="text-center">
+                  <input type="checkbox" checked={selectedIds.includes(member.id)} onChange={() => toggleOne(member.id)} aria-label={`Select ${member.name}`} className="accent-(--primary-color)" />
                 </td>
-                <td className="cell-link" style={{ cursor: 'default' }}>{member.name}</td>
-                <td className="cell-link" style={{ cursor: 'default' }}>{member.email}</td>
-                <td className="cell-link" style={{ cursor: 'default' }}>{member.alias}</td>
+                <td className="cell-link cursor-default">{member.name}</td>
+                <td className="cell-link cursor-default">{member.email}</td>
+                <td className="cell-link cursor-default">{member.alias}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {!loading && sortedMembers.length === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('noMembersFound')}</div>
+          <div className="p-8 text-center text-(--text-secondary)">{t('noMembersFound')}</div>
         )}
       </div>
 

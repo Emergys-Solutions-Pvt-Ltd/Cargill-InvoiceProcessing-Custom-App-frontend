@@ -93,19 +93,19 @@ const ItemFormModal = ({ def, parentDef, item, parentOptions, onClose, onSaved }
           </div>
         </div>
         {def.entity === 'statuses' && (
-          <p className="page-subtitle" style={{ marginTop: '-0.6rem', marginBottom: '1rem' }}>
+          <p className="page-subtitle mt-[-0.6rem] mb-4">
             {t('statusCodeHint', 'The code is stored on invoices; renaming it updates existing invoices.')}
           </p>
         )}
         <div className="input-group">
           <label>{t('description', 'Description')}</label>
-          <textarea className="input-field" rows={2} value={form.description} onChange={set('description')} maxLength={500} style={{ resize: 'vertical' }} />
+          <textarea className="input-field resize-y" rows={2} value={form.description} onChange={set('description')} maxLength={500} />
         </div>
         <div className="form-grid">
           {def.hasColor && (
             <div className="input-group">
               <label>{t('pillColor', 'Pill color')}</label>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div className="flex gap-2 items-center">
                 <select className="input-field" value={form.color} onChange={set('color')}>
                   {COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -118,8 +118,8 @@ const ItemFormModal = ({ def, parentDef, item, parentOptions, onClose, onSaved }
             <input type="number" min="0" className="input-field" value={form.sortOrder} onChange={set('sortOrder')} />
           </div>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
-          <input type="checkbox" checked={form.isActive} onChange={set('isActive')} style={{ accentColor: 'var(--primary-color)', width: 15, height: 15 }} />
+        <label className="flex items-center gap-2 text-[0.8125rem]">
+          <input type="checkbox" checked={form.isActive} onChange={set('isActive')} className="accent-(--primary-color) w-[15px] h-[15px]" />
           {t('activeLabel', 'Active (available in dropdowns)')}
         </label>
         <div className="modal-actions">
@@ -227,23 +227,22 @@ const Configuration = () => {
 
   return (
     <div>
-      <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="flex-between page-header gap-4 flex-wrap">
         <div>
           <h1 className="page-title">{t('configurationMenu', 'Configuration')}</h1>
           <p className="page-subtitle">
             {t('configurationSubtitle', 'Master data used across the apps: locations, business units, team queues, invoice statuses and processes.')}
           </p>
         </div>
-        {toast && <span className="badge badge-success" style={{ gap: '0.35rem' }}><CheckCircle size={13} /> {toast}</span>}
+        {toast && <span className="badge badge-success gap-[0.35rem]"><CheckCircle size={13} /> {toast}</span>}
       </div>
 
-      <div className="tab-bar" style={{ overflowX: 'auto', overflowY: 'hidden' }}>
+      <div className="tab-bar overflow-x-auto overflow-y-hidden">
         {entities.map((e) => (
           <button
             key={e.entity}
             type="button"
-            className={`tab-link ${def?.entity === e.entity ? 'active' : ''}`}
-            style={{ background: 'none', border: 'none', borderBottom: '2px solid', borderBottomColor: def?.entity === e.entity ? 'var(--primary-color)' : 'transparent', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            className={`tab-link bg-transparent bg-none border-0 border-solid border-b-2 cursor-pointer whitespace-nowrap ${def?.entity === e.entity ? 'active border-b-(--primary-color)' : 'border-b-transparent'}`}
             onClick={() => navigate(`/settings/configuration/${e.entity}`)}
           >
             {tabLabel(e)}
@@ -252,28 +251,27 @@ const Configuration = () => {
       </div>
 
       {def && (
-        <div className="glass-panel" style={{ padding: '1.25rem' }}>
-          <div className="flex-between" style={{ marginBottom: '1rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', flex: 1 }}>
-              <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 320 }}>
+        <div className="glass-panel p-[1.25rem]">
+          <div className="flex-between mb-4 gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap items-center flex-1">
+              <div className="relative flex-1 min-w-[200px] max-w-[320px]">
                 <input
                   type="text"
-                  className="input-field"
+                  className="input-field pl-[2.1rem]"
                   placeholder={`${t('search', 'Search')} ${tabLabel(def).toLowerCase()}...`}
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                  style={{ paddingLeft: '2.1rem' }}
                 />
-                <Search size={15} color="var(--text-secondary)" style={{ position: 'absolute', left: '0.7rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                <Search size={15} color="var(--text-secondary)" className="absolute left-[0.7rem] top-1/2 [transform:translateY(-50%)] pointer-events-none" />
               </div>
               {parentDef && (
-                <select className="input-field" value={parentFilter} onChange={(e) => { setParentFilter(e.target.value); setPage(1); }} style={{ width: 200 }} aria-label={parentDef.label}>
+                <select className="input-field w-[200px]" value={parentFilter} onChange={(e) => { setParentFilter(e.target.value); setPage(1); }} aria-label={parentDef.label}>
                   <option value="">{t('all', 'All')} {tabLabel(parentDef).toLowerCase()}</option>
                   {parentOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               )}
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                <input type="checkbox" checked={includeInactive} onChange={(e) => { setIncludeInactive(e.target.checked); setPage(1); }} style={{ accentColor: 'var(--primary-color)' }} />
+              <label className="flex items-center gap-[0.4rem] text-[0.8125rem] text-(--text-secondary)">
+                <input type="checkbox" checked={includeInactive} onChange={(e) => { setIncludeInactive(e.target.checked); setPage(1); }} className="accent-(--primary-color)" />
                 {t('showInactive', 'Show inactive')}
               </label>
             </div>
@@ -293,23 +291,23 @@ const Configuration = () => {
                   <th>{t('description', 'Description')}</th>
                   <th>{t('sortOrder', 'Order')}</th>
                   <th>{t('status')}</th>
-                  <th style={{ textAlign: 'right' }}>{t('actions')}</th>
+                  <th className="text-right">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>{t('loading', 'Loading...')}</td></tr>
+                  <tr><td colSpan="8" className="text-center p-8 text-(--text-secondary)">{t('loading', 'Loading...')}</td></tr>
                 ) : items.map((item) => (
-                  <tr key={item.id} style={{ opacity: item.isActive ? 1 : 0.6 }}>
-                    <td style={{ fontWeight: 500 }}>{item.code || '–'}</td>
+                  <tr key={item.id} className={item.isActive ? 'opacity-100' : 'opacity-60'}>
+                    <td className="font-medium">{item.code || '–'}</td>
                     <td>{item.name}</td>
                     {parentDef && <td>{item.parentName}</td>}
                     {def.hasColor && <td><span className={`badge badge-${item.color || 'neutral'}`}>{item.name}</span></td>}
-                    <td style={{ color: 'var(--text-secondary)', maxWidth: 320 }} title={item.description || ''}>{item.description || '–'}</td>
+                    <td className="text-(--text-secondary) max-w-[320px]" title={item.description || ''}>{item.description || '–'}</td>
                     <td>{item.sortOrder}</td>
                     <td><span className={`badge ${item.isActive ? 'badge-success' : 'badge-neutral'}`}>{item.isActive ? t('active', 'Active') : t('inactive', 'Inactive')}</span></td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
+                    <td className="text-right">
+                      <div className="inline-flex gap-[0.35rem]">
                         <button type="button" className="row-action" title={t('edit', 'Edit')} aria-label={`Edit ${item.name}`} onClick={() => setEditing(item)}>
                           <Pencil size={14} />
                         </button>
@@ -323,7 +321,7 @@ const Configuration = () => {
               </tbody>
             </table>
             {!loading && items.length === 0 && (
-              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('noRecords', 'No records found')}</div>
+              <div className="p-8 text-center text-(--text-secondary)">{t('noRecords', 'No records found')}</div>
             )}
           </div>
 

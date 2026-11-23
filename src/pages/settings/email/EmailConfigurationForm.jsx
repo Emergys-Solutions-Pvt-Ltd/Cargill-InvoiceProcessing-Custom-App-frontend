@@ -37,7 +37,7 @@ const EmailConfigurationForm = () => {
         })}
       </div>
 
-      <div className="glass" style={{ padding: '1.25rem' }}>
+      <div className="glass p-[1.25rem]">
         {tab === 'connection' && <EmailConnectionTab />}
         {tab === 'registration' && <EmailRegistrationTab />}
       </div>

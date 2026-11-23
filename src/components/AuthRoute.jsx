@@ -1,12 +1,17 @@
 import React, { useContext } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import CircularProgress from '@mui/material/CircularProgress';
 import { AuthContext } from '../context/AuthContext';
 
 const AuthRoute = ({ children, requireAdmin, requireApp }) => {
   const { user, loading, isAdmin, hasAppAccess, getDefaultRoute } = useContext(AuthContext);
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--text-secondary)' }}>Loading Auth...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center" role="status" aria-label="Loading">
+        <CircularProgress size={28} />
+      </div>
+    );
   }
 
   if (!user) {

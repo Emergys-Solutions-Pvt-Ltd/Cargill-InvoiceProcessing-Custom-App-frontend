@@ -66,7 +66,7 @@ const ScheduleTab = ({ form, update, fieldErrors, integration }) => {
           ))}
         </div>
 
-        <div className="form-grid" style={{ marginTop: '1rem' }}>
+        <div className="form-grid mt-4">
           {s.mode === 'interval' && preset === 'interval' && (
             <Field label={t('sapIntervalMinutes', 'Every (minutes)')} error={e.intervalMinutes} hint={t('sapIntervalHint', 'Minimum 5 minutes')}>
               <input className="input-field" type="number" min={5} max={10080} value={s.intervalMinutes} onChange={(ev) => setSchedule({ intervalMinutes: ev.target.value })} />

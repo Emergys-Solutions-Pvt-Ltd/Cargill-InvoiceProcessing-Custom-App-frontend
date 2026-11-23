@@ -541,5 +541,19 @@
   "inboxStatusNew": "Nuevo",
   "inboxStatusNote": "Nota de estado",
   "inboxStatusProcessed": "Procesado",
-  "inboxTo": "Para"
+  "inboxTo": "Para",
+  "signInWithMicrosoft": "Iniciar sesión con Microsoft",
+  "redirectingToMicrosoft": "Redirigiendo a Microsoft…",
+  "microsoftSignInFailed": "Error al iniciar sesión con Microsoft",
+  "sessionIdleLoggedOut": "Se cerró su sesión por inactividad. Vuelva a iniciar sesión.",
+  "sessionExpired": "Su sesión ha finalizado. Vuelva a iniciar sesión.",
+  "orSignInManually": "o inicie sesión manualmente",
+  "appName": "LATAM Invoice Workflow",
+  "login": "Iniciar sesión",
+  "loginHeroTitleLine1": "Portal de",
+  "loginHeroTitleLine2": "Servicios Empresariales",
+  "loginHeroSubtitle": "Acceda y haga seguimiento de solicitudes de servicio, incidentes, tareas y recursos de conocimiento desde un único espacio de trabajo centralizado, diseñado para simplificar el soporte empresarial.",
+  "loginSsoHint": "Este portal no requiere usuario ni contraseña y utiliza su ID de Active Directory para la autenticación. Presione el botón de abajo desde su equipo de trabajo.",
+  "showDemoAccounts": "Usar una cuenta de demostración",
+  "hideDemoAccounts": "Ocultar cuentas de demostración"
 }

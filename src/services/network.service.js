@@ -24,10 +24,14 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Auto logout if 401 response returned from api
+    // 401 = token expired, signed out (also from another tab) or idle too long: drop the session, back to /login.
+    // Sign-in / sign-out calls pass skipAuthRedirect and handle their own errors.
+    if (error.response && error.response.status === 401 && !error.config?.skipAuthRedirect) {
+      const hadSession = !!storageService.get('token');
       storageService.remove('token');
       storageService.remove('user');
+      storageService.remove('lastActivityAt');
+      if (hadSession) storageService.set('logoutReason', 'expired');
       window.location.href = '/login';
     }
     return Promise.reject(error);

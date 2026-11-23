@@ -1,8 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../context/LanguageContext';
-import { ShieldCheck, CreditCard, FileText, Lock, Layers, LayoutGrid } from 'lucide-react';
+import { authService } from '../services/auth.service';
+import { storageService } from '../services/storage.service';
+import { msalConfigured, startMicrosoftSignIn } from '../services/msal.service';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
+import ButtonBase from '@mui/material/ButtonBase';
+import Divider from '@mui/material/Divider';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { ShieldCheck, CreditCard, FileText, Lock, Layers, LayoutGrid, Clock } from 'lucide-react';
 import cargillLogo from '../assets/cargill_logo.svg';
 
 const DEMO_USERS = [
@@ -71,23 +80,62 @@ const DEMO_USERS = [
 const Login = () => {
   const [username, setUsername] = useState('admin@cargill.com');
   const [password, setPassword] = useState('password');
-  const [isAD, setIsAD] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, getDefaultRoute } = useContext(AuthContext);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
+  // Until /auth/options answers: Microsoft button when the build has MSAL settings, password form always
+  const [options, setOptions] = useState({ ssoEnabled: msalConfigured, passwordLoginEnabled: true });
+  const { user, login, getDefaultRoute, ssoError, clearSsoError } = useContext(AuthContext);
   const { t } = useContext(LanguageContext);
   const navigate = useNavigate();
+
+  const showMicrosoft = msalConfigured && options.ssoEnabled;
+  const showPassword = options.passwordLoginEnabled;
+
+  useEffect(() => {
+    let active = true;
+    authService.getOptions()
+      .then((data) => { if (active) setOptions(data); })
+      .catch(() => {});
+    const reason = storageService.get('logoutReason');
+    storageService.remove('logoutReason');
+    if (reason === 'idle') setNotice(t('sessionIdleLoggedOut', 'You were signed out after a period of inactivity. Please sign in again.'));
+    if (reason === 'expired') setNotice(t('sessionExpired', 'Your session has ended. Please sign in again.'));
+    return () => { active = false; };
+  }, [t]);
+
+  // Signed in (e.g. back from the Microsoft sign-in page): go to the user's start page
+  useEffect(() => {
+    if (user) navigate(getDefaultRoute(user), { replace: true });
+  }, [user, navigate, getDefaultRoute]);
+
+  const handleMicrosoftLogin = async () => {
+    setError('');
+    setNotice('');
+    clearSsoError();
+    setIsRedirecting(true);
+    try {
+      await startMicrosoftSignIn();
+    } catch (err) {
+      setIsRedirecting(false);
+      setError(err?.message || t('microsoftSignInFailed', 'Microsoft sign-in failed'));
+    }
+  };
 
   const handleLogin = async (e, customUser, customPass) => {
     if (e) e.preventDefault();
     setError('');
+    setNotice('');
+    clearSsoError();
     setIsLoading(true);
 
     const userToLogin = customUser || username;
     const passToLogin = customPass || password;
 
     try {
-      const loggedInUser = await login(userToLogin, passToLogin, isAD);
+      const loggedInUser = await login(userToLogin, passToLogin, false);
       const targetRoute = getDefaultRoute(loggedInUser);
       navigate(targetRoute, { replace: true });
     } catch (err) {
@@ -104,117 +152,153 @@ const Login = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '2rem', background: 'radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.08), transparent 40%), radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.05), transparent 40%)' }}>
-      <div className="glass-panel" style={{ padding: '2.5rem', borderRadius: '24px', width: '100%', maxWidth: '480px', border: '1px solid var(--border-color)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}>
+    <main className="flex min-h-screen gap-6 bg-(--bg-color) p-4 md:p-5">
+      {/* Brand panel (hidden on small screens) */}
+      <section
+        aria-hidden="true"
+        className="login-hero hidden flex-col justify-end rounded-2xl px-14 pb-16 text-white md:flex md:w-[58%]"
+      >
+        <h2 className="mb-5 text-[3.6rem] font-semibold leading-[1.12] tracking-[-0.01em] text-white">
+          {t('loginHeroTitleLine1', 'Enterprise')}
+          <br />
+          {t('loginHeroTitleLine2', 'Service Portal')}
+        </h2>
+        <p className="max-w-[640px] text-[1.05rem] leading-[1.45] text-[rgba(255,255,255,0.85)]">
+          {t(
+            'loginHeroSubtitle',
+            'Access and track service requests, incidents, tasks, and knowledge resources from a single centralized workspace designed to simplify enterprise support.',
+          )}
+        </p>
+      </section>
 
-        {/* Header with Cargill Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0.75rem 1.5rem', borderRadius: '16px', background: 'rgba(255, 255, 255, 0.05)', marginBottom: '1.25rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <img src={cargillLogo} alt="Cargill" style={{ height: '36px', filter: 'brightness(1.1)' }} />
-          </div>
-          <h1 style={{ fontSize: '1.65rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>{t('welcomeBack')}</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t('signInTo', 'Sign in to access LATAM Invoice Workflow')}</p>
-        </div>
+      {/* Sign-in panel */}
+      <section className="flex flex-1 items-center justify-center px-6 py-10">
+        <div className="w-full max-w-[500px]">
+          <img src={cargillLogo} alt="Cargill" className="mb-20 h-14" />
 
-        {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.12)', color: 'var(--danger-color)', padding: '0.85rem 1rem', borderRadius: '10px', marginBottom: '1.5rem', fontSize: '0.85rem', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Lock size={16} />
-            {error}
-          </div>
-        )}
+          <Typography component="h1" className="mb-7 text-[1.9rem] font-semibold text-(--text-primary)">
+            {t('appName', 'LATAM Invoice Workflow')}
+          </Typography>
 
-        {/* Demo Quick Login Chips */}
-        <div style={{ marginBottom: '1.75rem' }}>
-          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: '600', display: 'block', marginBottom: '0.65rem' }}>
-            ⚡ Select Demo Account Role:
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {DEMO_USERS.map((demo) => {
-              const Icon = demo.icon;
-              const isSelected = username === demo.email;
-              return (
-                <button
-                  key={demo.id}
-                  type="button"
-                  onClick={() => handleSelectDemo(demo)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justify: 'space-between',
-                    padding: '0.65rem 0.9rem',
-                    borderRadius: '10px',
-                    border: isSelected ? '1.5px solid var(--primary-color)' : '1px solid var(--border-color)',
-                    background: isSelected ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(255, 255, 255, 0.02)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    textAlign: 'left'
-                  }}
+          {(error || ssoError) && (
+            <Alert severity="error" icon={<Lock size={16} />} className="mb-6">
+              {error || ssoError}
+            </Alert>
+          )}
+
+          {notice && !error && !ssoError && (
+            <Alert severity="success" icon={<Clock size={16} />} className="mb-6" role="status">
+              {notice}
+            </Alert>
+          )}
+
+          {showMicrosoft && (
+            <>
+              <Typography className="mb-12 text-[1.1rem] leading-[1.65] text-(--text-secondary)">
+                {t(
+                  'loginSsoHint',
+                  "This portal doesn't require username and password and uses Active Directory ID for Authentication. Kindly press the below button using your work system.",
+                )}
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                disableElevation
+                onClick={handleMicrosoftLogin}
+                disabled={isRedirecting || isLoading}
+                className="h-[46px] rounded-sm text-base font-medium normal-case"
+              >
+                {isRedirecting ? t('redirectingToMicrosoft', 'Redirecting to Microsoft…') : t('login', 'Login')}
+              </Button>
+            </>
+          )}
+
+          {showPassword && (
+            <div className={showMicrosoft ? 'mt-8' : ''}>
+              {showMicrosoft && (
+                <Divider className="mb-5 text-[0.8rem] text-(--text-secondary)">
+                  {t('orSignInManually', 'or sign in manually')}
+                </Divider>
+              )}
+
+              <form onSubmit={(e) => handleLogin(e)} className="flex flex-col gap-4">
+                <TextField
+                  label={t('emailUsername')}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  required
+                />
+                <TextField
+                  type="password"
+                  label={t('password')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                <Button
+                  type="submit"
+                  variant={showMicrosoft ? 'outlined' : 'contained'}
+                  size="large"
+                  fullWidth
+                  disableElevation
+                  disabled={isLoading}
+                  className="mt-2 h-[46px] rounded-sm text-base font-medium normal-case"
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{ color: 'var(--primary-color)', display: 'flex' }}>
-                      <Icon size={18} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-primary)' }}>{demo.label}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{demo.email}</div>
-                    </div>
+                  {isLoading ? t('signingIn') : showMicrosoft ? t('signIn') : t('login', 'Login')}
+                </Button>
+              </form>
+
+              {/* Demo quick login (password sign-in only; hide with AUTH_PASSWORD_LOGIN_ENABLED=false) */}
+              <div className="mt-6">
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={() => setShowDemo((v) => !v)}
+                  aria-expanded={showDemo}
+                  className="normal-case"
+                >
+                  {showDemo ? t('hideDemoAccounts', 'Hide demo accounts') : t('showDemoAccounts', 'Use a demo account')}
+                </Button>
+                {showDemo && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    {DEMO_USERS.map((demo) => {
+                      const Icon = demo.icon;
+                      const isSelected = username === demo.email;
+                      return (
+                        <ButtonBase
+                          key={demo.id}
+                          onClick={() => handleSelectDemo(demo)}
+                          disabled={isLoading}
+                          className={`flex w-full items-center justify-between gap-2 rounded-[10px] px-[0.9rem] py-[0.65rem] text-left transition-all duration-200 ${
+                            isSelected
+                              ? 'border-[1.5px] border-solid border-(--primary-color) bg-[rgba(var(--primary-rgb),0.1)]'
+                              : 'border border-solid border-(--border-color) bg-[rgba(255,255,255,0.02)]'
+                          }`}
+                        >
+                          <span className="flex items-center gap-[0.65rem]">
+                            <span className="flex text-(--primary-color)">
+                              <Icon size={18} />
+                            </span>
+                            <span>
+                              <span className="block text-[0.85rem] font-semibold text-(--text-primary)">{demo.label}</span>
+                              <span className="block text-xs text-(--text-secondary)">{demo.email}</span>
+                            </span>
+                          </span>
+                          <span className={`badge ${demo.badgeClass} px-2 py-[2px] text-[0.7rem]`}>{demo.access}</span>
+                        </ButtonBase>
+                      );
+                    })}
                   </div>
-                  <span className={`badge ${demo.badgeClass}`} style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
-                    {demo.access}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.25rem 0', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
-          <span>or sign in manually</span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
-        </div>
-
-        <form onSubmit={(e) => handleLogin(e)}>
-          <div className="input-group">
-            <label style={{ fontSize: '0.85rem', fontWeight: '500' }}>{t('emailUsername')}</label>
-            <input
-              type="text"
-              className="input-field"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <label style={{ fontSize: '0.85rem', fontWeight: '500' }}>{t('password')}</label>
-            <input
-              type="password"
-              className="input-field"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required={!isAD}
-              disabled={isAD}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              id="ad-login"
-              checked={isAD}
-              onChange={(e) => setIsAD(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)', cursor: 'pointer' }}
-            />
-            <label htmlFor="ad-login" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', userSelect: 'none', cursor: 'pointer' }}>{t('loginActiveDirectory')}</label>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', fontWeight: '600' }} disabled={isLoading}>
-            {isLoading ? t('signingIn') : (isAD ? t('signInWithAD') : t('signIn'))}
-          </button>
-        </form>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

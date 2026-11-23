@@ -93,7 +93,7 @@ const InvoicePdfViewer = ({ invoice, attachments, selectedId, onSelect, onUpload
         </div>
       </div>
 
-      {error && <div className="form-error" style={{ margin: '0.5rem 0.75rem 0' }}>{error}</div>}
+      {error && <div className="form-error m-[0.5rem_0.75rem_0]">{error}</div>}
 
       {current ? (
         <iframe

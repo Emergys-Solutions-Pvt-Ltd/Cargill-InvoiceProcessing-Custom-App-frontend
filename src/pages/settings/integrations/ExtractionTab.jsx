@@ -223,7 +223,7 @@ const OnBaseQuerySettings = ({ profile, onChange, s, se, e, prefix, fieldErrors,
       <h4 className="sap-subheading">{t('sapIncremental', 'Incremental synchronization')}</h4>
       <Toggle checked={s.incremental !== false} onChange={(v) => setSettings({ incremental: v })}
         label={s.incremental !== false ? t('onbaseIncrementalOn', 'By document date, from the saved cursor') : t('onbaseIncrementalOff', 'Re-read the look-back period every run')} />
-      <div className="form-grid sap-grid-4" style={{ marginTop: '0.75rem' }}>
+      <div className="form-grid sap-grid-4 mt-3">
         <Field label={t('onbaseOverlapDays', 'Overlap (days)')} error={se.overlapDays} hint={t('sapOverlapHint', 'Re-read window before the cursor')}>
           <input className="input-field" type="number" min={0} max={30} value={s.overlapDays ?? 1} disabled={s.incremental === false} onChange={(ev) => setSettings({ overlapDays: ev.target.value })} />
         </Field>
@@ -336,7 +336,7 @@ const ProfileEditor = ({ profile, index, onChange, onRemove, catalog, fieldError
             label={t('sapDetectCancellation', 'Detect reversals in SAP')}
           />
           {rule && (
-            <div className="form-grid sap-grid-4" style={{ marginTop: '0.75rem' }}>
+            <div className="form-grid sap-grid-4 mt-3">
               <Field label={t('sapField', 'Field')} error={errorsFor(fieldErrors, `${prefix}.cancellationRule`).field}>
                 <input className="input-field" value={rule.field || ''} onChange={(ev) => setRule({ field: ev.target.value })} />
               </Field>
@@ -380,11 +380,11 @@ const ExtractionTab = ({ form, update, fieldErrors, catalog, onResetCursor }) =>
 
   return (
     <div className="sap-tab">
-      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
-        <p className="sap-muted" style={{ margin: 0, maxWidth: 640 }}>
+      <div className="flex-between flex-wrap gap-3 mb-4">
+        <p className="sap-muted m-0 max-w-[640px]">
           {t('sapExtractionIntro', 'Each profile extracts one kind of SAP document into one application. The same SAP document is never imported twice, even if two profiles match it.')}
         </p>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="flex gap-2 flex-wrap">
           {templates.map((tpl) => (
             <button key={tpl.id} type="button" className="btn btn-outline" onClick={() => setProfiles([...form.profiles, profileFromTemplate(tpl)])} title={tpl.description}>
               <Copy size={14} /> {tpl.name}

@@ -157,7 +157,7 @@ const GroupFields = ({ group, editing, data, form, onChange }) => (
 /** Inline expanded detail for one CCPP row: read-only view with an Edit toggle, or an edit form. */
 const CcppDetailPanel = ({ detail, editing, form, onChange, onEdit, onCancel, onSave, saving }) => {
   const { t } = useContext(LanguageContext);
-  if (!detail) return <div style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{t('loading', 'Loading...')}</div>;
+  if (!detail) return <div className="p-4 text-(--text-secondary)">{t('loading', 'Loading...')}</div>;
 
   return (
     <div>
@@ -171,7 +171,7 @@ const CcppDetailPanel = ({ detail, editing, form, onChange, onEdit, onCancel, on
         <Field label="Last Modified By"><ReadOnly value={detail.updatedBy?.name} /></Field>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+      <div className="flex gap-2 mt-3">
         {editing ? (
           <React.Fragment>
             <button type="button" className="btn btn-primary" onClick={onSave} disabled={saving}>
@@ -305,7 +305,7 @@ const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
   return (
     <div>
       {notice && (
-        <div className={notice.ok ? 'form-success' : 'form-error'} style={{ margin: '0 0 0.75rem' }}>
+        <div className={`${notice.ok ? 'form-success' : 'form-error'} m-[0_0_0.75rem]`}>
           {notice.ok ? <CheckCircle size={15} /> : <AlertCircle size={15} />} {notice.message}
         </div>
       )}
@@ -329,19 +329,19 @@ const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>
+                <td colSpan={8} className="text-center p-10 text-(--text-secondary)">
                   {t('loading', 'Loading...')}
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>
+                <td colSpan={8} className="text-center p-10 text-(--text-secondary)">
                   {t('noCcppRecords', 'No CCPP records linked to this invoice.')}
                 </td>
               </tr>
             ) : rows.map((row) => (
               <React.Fragment key={row.id}>
-                <tr className="cell-link" onClick={() => toggleExpand(row.id)} style={{ cursor: 'pointer' }}>
+                <tr className="cell-link cursor-pointer" onClick={() => toggleExpand(row.id)}>
                   <td>{expandedId === row.id ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</td>
                   <td>{row.name || '–'}</td>
                   <td>{row.cuit || '–'}</td>
@@ -353,7 +353,7 @@ const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
                 </tr>
                 {expandedId === row.id && (
                   <tr>
-                    <td colSpan={8} style={{ background: 'var(--bg-secondary, #f6f7f8)', padding: '1rem 1.25rem' }}>
+                    <td colSpan={8} className="bg-[color:var(--bg-secondary,#f6f7f8)] p-[1rem_1.25rem]">
                       <CcppDetailPanel
                         detail={detailCache[row.id]}
                         editing={editingId === row.id}
@@ -375,7 +375,7 @@ const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
 
       {showAddModal && (
         <Modal title={t('addCcppEntry', 'Add New Entry')} onClose={() => setShowAddModal(false)} width={720}>
-          <div style={{ padding: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
+          <div className="p-4 max-h-[70vh] overflow-y-auto">
             {CCPP_GROUPS.map((group) => (
               <GroupFields
                 key={group.title}
@@ -386,7 +386,7 @@ const CcppTab = React.forwardRef(({ appId, invoiceId }, ref) => {
               />
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', padding: '0 1rem 1rem' }}>
+          <div className="flex gap-2 p-[0_1rem_1rem]">
             <button type="button" className="btn btn-primary" onClick={handleCreate} disabled={saving || !addForm.product || !addForm.status}>
               <Save size={15} /> {saving ? t('saving', 'Saving...') : t('save', 'Save')}
             </button>

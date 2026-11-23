@@ -137,9 +137,9 @@ export const SjoFlagBadges = ({ sjo }) => {
   ].filter(Boolean);
   if (set.length === 0) return '-';
   return (
-    <span style={{ display: 'inline-flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+    <span className="inline-flex gap-1 flex-wrap">
       {set.map(([key, label, color]) => (
-        <span key={key} className={`badge badge-${color}`} style={{ whiteSpace: 'nowrap' }}>{t(key, label)}</span>
+        <span key={key} className={`badge badge-${color} whitespace-nowrap`}>{t(key, label)}</span>
       ))}
     </span>
   );

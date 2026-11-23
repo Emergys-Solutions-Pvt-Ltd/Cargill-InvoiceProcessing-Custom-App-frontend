@@ -83,15 +83,15 @@ const UserFormModal = ({ user, onClose, onSaved }) => {
           )}
         </div>
 
-        <div className="input-group" style={{ marginBottom: 0 }}>
+        <div className="input-group mb-0">
           <label>{t('assignAccessibleApps', 'Assign Accessible App(s)')}</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div className="flex flex-col gap-[0.4rem]">
             {APPS.map((app) => {
               const checked = form.assignedApps.includes(app.id);
               return (
                 <label key={app.id} className={`choice-row ${checked ? 'checked' : ''}`}>
                   <input type="checkbox" checked={checked} onChange={() => toggleApp(app.id)} />
-                  <span style={{ flex: 1 }}>{t(app.nameKey, app.name)}</span>
+                  <span className="flex-1">{t(app.nameKey, app.name)}</span>
                   <span className={`badge ${checked ? 'badge-success' : 'badge-neutral'}`}>
                     {checked ? t('granted', 'Granted') : t('noAccess', 'No Access')}
                   </span>
@@ -185,7 +185,7 @@ const Users = () => {
   }, [users, sortColumn, sortDirection]);
 
   const renderSortIcon = (columnKey) => {
-    if (sortColumn !== columnKey) return <ArrowUpDown size={13} className="sort-icon" style={{ opacity: 0.4 }} />;
+    if (sortColumn !== columnKey) return <ArrowUpDown size={13} className="sort-icon opacity-40" />;
     return sortDirection === 'asc' ? <ChevronUp size={13} className="sort-icon" /> : <ChevronDown size={13} className="sort-icon" />;
   };
 
@@ -224,14 +224,14 @@ const Users = () => {
 
   return (
     <div>
-      <div className="flex-between page-header" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="flex-between page-header gap-4 flex-wrap">
         <div>
           <h1 className="page-title">{t('usersMenu', 'Users')}</h1>
           <p className="page-subtitle">{t('usersSubtitle', 'Create, edit and delete platform users and choose which apps they can open.')}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="flex items-center gap-3">
           {toast && (
-            <span className={`badge ${toast.isError ? 'badge-danger' : 'badge-success'}`} style={{ gap: '0.35rem' }}>
+            <span className={`badge gap-[0.35rem] ${toast.isError ? 'badge-danger' : 'badge-success'}`}>
               {toast.isError ? <AlertCircle size={13} /> : <CheckCircle size={13} />} {toast.message}
             </span>
           )}
@@ -241,27 +241,26 @@ const Users = () => {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ padding: '1.25rem' }}>
-        <div className="flex-between" style={{ marginBottom: '1rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: 240, maxWidth: 360 }}>
+      <div className="glass-panel p-[1.25rem]">
+        <div className="flex-between mb-4 gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[240px] max-w-[360px]">
             <input
               type="text"
-              className="input-field"
+              className="input-field pl-[2.1rem]"
               placeholder={t('searchUserPlaceholder')}
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-              style={{ paddingLeft: '2.1rem' }}
             />
-            <Search size={15} color="var(--text-secondary)" style={{ position: 'absolute', left: '0.7rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            <Search size={15} color="var(--text-secondary)" className="absolute left-[0.7rem] top-1/2 [transform:translateY(-50%)] pointer-events-none" />
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <select className="input-field" value={filterApp} onChange={(e) => { setFilterApp(e.target.value); setPage(1); }} style={{ width: 230 }} aria-label="App filter">
+          <div className="flex gap-3 flex-wrap">
+            <select className="input-field w-[230px]" value={filterApp} onChange={(e) => { setFilterApp(e.target.value); setPage(1); }} aria-label="App filter">
               <option value="ALL">{t('allApps')} ({APPS.length})</option>
               {APPS.map((app) => (
                 <option key={app.id} value={app.id}>{t(app.nameKey, app.name)}</option>
               ))}
             </select>
-            <select className="input-field" value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setPage(1); }} style={{ width: 150 }} aria-label="Role filter">
+            <select className="input-field w-[150px]" value={filterRole} onChange={(e) => { setFilterRole(e.target.value); setPage(1); }} aria-label="Role filter">
               <option value="ALL">{t('allRoles')}</option>
               <option value="Admin">Admin</option>
               <option value="User">User</option>
@@ -278,35 +277,34 @@ const Users = () => {
                 <th className="sortable-header" onClick={() => handleSort('role')}>{t('globalRole')} {renderSortIcon('role')}</th>
                 <th>{t('accessibleApps')}</th>
                 <th className="sortable-header" onClick={() => handleSort('status')}>{t('status')} {renderSortIcon('status')}</th>
-                <th style={{ textAlign: 'right' }}>{t('actions')}</th>
+                <th className="text-right">{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>{t('loadingUsers')}</td></tr>
+                <tr><td colSpan="6" className="text-center p-8 text-(--text-secondary)">{t('loadingUsers')}</td></tr>
               ) : sortedUsers.map((u) => (
                 <tr key={u.id}>
-                  <td style={{ fontWeight: 500 }}>{u.name}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
+                  <td className="font-medium">{u.name}</td>
+                  <td className="text-(--text-secondary)">{u.email}</td>
                   <td><span className={`badge ${u.role === 'Admin' ? 'badge-success' : 'badge-info'}`}>{u.role}</span></td>
-                  <td style={{ maxWidth: 'none' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                  <td className="max-w-none">
+                    <div className="flex flex-wrap gap-[0.3rem]">
                       {(u.assignedApps || []).map((appId) => {
                         const app = APPS.find((a) => a.id === appId);
                         return <span key={appId} className="badge badge-neutral">{app ? t(app.nameKey, app.name) : appId}</span>;
                       })}
                       {(!u.assignedApps || u.assignedApps.length === 0) && (
-                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('noAppsAssigned')}</span>
+                        <span className="text-(--text-muted) italic">{t('noAppsAssigned')}</span>
                       )}
                     </div>
                   </td>
                   <td><span className={`badge ${u.status === 'Active' ? 'badge-success' : 'badge-danger'}`}>{u.status}</span></td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '0.35rem', alignItems: 'center' }}>
+                  <td className="text-right">
+                    <div className="inline-flex gap-[0.35rem] items-center">
                       <button
                         type="button"
-                        className="btn btn-outline"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', color: u.status === 'Active' ? 'var(--danger-color)' : 'var(--success-color)' }}
+                        className={`btn btn-outline p-[0.2rem_0.6rem] text-[0.75rem] ${u.status === 'Active' ? 'text-(--danger-color)' : 'text-(--success-color)'}`}
                         onClick={() => handleToggleUserStatus(u)}
                         disabled={togglingUserId === u.id || isSelf(u)}
                       >
@@ -332,7 +330,7 @@ const Users = () => {
             </tbody>
           </table>
           {!loading && sortedUsers.length === 0 && (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>{t('noUsersFound')}</div>
+            <div className="p-8 text-center text-(--text-secondary)">{t('noUsersFound')}</div>
           )}
         </div>
 

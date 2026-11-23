@@ -76,7 +76,7 @@ const JobDetailModal = ({ integrationId, jobId, onClose, onRetry, onCancel }) =>
               </thead>
               <tbody>
                 {profiles.length === 0 ? (
-                  <tr><td colSpan="9" className="sap-muted" style={{ textAlign: 'center' }}>{t('sapNoPagesYet', 'No page processed')}</td></tr>
+                  <tr><td colSpan="9" className="sap-muted text-center">{t('sapNoPagesYet', 'No page processed')}</td></tr>
                 ) : profiles.map(([id, p]) => (
                   <tr key={id}>
                     <td>{p.name}</td><td>{formatNumber(p.fetched)}</td><td>{formatNumber(p.created)}</td><td>{formatNumber(p.updated)}</td>
@@ -88,9 +88,9 @@ const JobDetailModal = ({ integrationId, jobId, onClose, onRetry, onCancel }) =>
             </table>
           </div>
 
-          <div className="flex-between" style={{ marginTop: '1.25rem', marginBottom: '0.5rem' }}>
-            <h4 className="sap-subheading" style={{ margin: 0 }}>{t('sapErrorDetails', 'Error details')} ({errors.totalItems})</h4>
-            <select className="input-field" style={{ width: 200 }} value={stage} aria-label={t('sapStage', 'Stage')} onChange={(e) => { setStage(e.target.value); setPage(1); }}>
+          <div className="flex-between mt-5 mb-2">
+            <h4 className="sap-subheading m-0">{t('sapErrorDetails', 'Error details')} ({errors.totalItems})</h4>
+            <select className="input-field w-[200px]" value={stage} aria-label={t('sapStage', 'Stage')} onChange={(e) => { setStage(e.target.value); setPage(1); }}>
               <option value="">{t('sapAllStages', 'All stages')}</option>
               {STAGES.map((s) => <option key={s} value={s}>{t(`sapStage_${s}`, s)}</option>)}
             </select>
@@ -102,9 +102,9 @@ const JobDetailModal = ({ integrationId, jobId, onClose, onRetry, onCancel }) =>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center' }}><Loader2 size={16} className="spin" /></td></tr>
+                  <tr><td colSpan="5" className="text-center"><Loader2 size={16} className="spin" /></td></tr>
                 ) : errors.data.length === 0 ? (
-                  <tr><td colSpan="5" className="sap-muted" style={{ textAlign: 'center' }}>{t('sapNoErrors', 'No errors')}</td></tr>
+                  <tr><td colSpan="5" className="sap-muted text-center">{t('sapNoErrors', 'No errors')}</td></tr>
                 ) : errors.data.map((er) => (
                   <tr key={er.id}>
                     <td><span className={`badge ${er.stage === 'review' ? 'badge-warning' : 'badge-danger'}`}>{t(`sapStage_${er.stage}`, er.stage)}</span></td>
@@ -246,10 +246,10 @@ const DashboardTab = ({ integration, onSyncNow, syncing, notify, onSummary }) =>
         </div>
       )}
 
-      <div className="flex-between" style={{ marginBottom: '0.75rem', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <h3 className="sap-subheading" style={{ margin: 0 }}>{t('sapOverview', 'Overview')}</h3>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <select className="input-field" style={{ width: 150 }} value={days} aria-label={t('sapPeriod', 'Period')} onChange={(e) => setDays(Number(e.target.value))}>
+      <div className="flex-between mb-3 gap-3 flex-wrap">
+        <h3 className="sap-subheading m-0">{t('sapOverview', 'Overview')}</h3>
+        <div className="flex gap-2">
+          <select className="input-field w-[150px]" value={days} aria-label={t('sapPeriod', 'Period')} onChange={(e) => setDays(Number(e.target.value))}>
             {[1, 7, 30, 90].map((d) => <option key={d} value={d}>{t('sapLastDays', 'Last {n} days').replace('{n}', d)}</option>)}
           </select>
           <button type="button" className="btn btn-outline" onClick={() => setTick((n) => n + 1)} aria-label={t('refresh', 'Refresh')}><RefreshCw size={15} /></button>
@@ -274,7 +274,7 @@ const DashboardTab = ({ integration, onSyncNow, syncing, notify, onSummary }) =>
         <Kpi label={t('sapInvoicesImported', 'Invoices imported (all time)')} value={formatNumber(summary?.invoicesImported)} />
       </div>
       {last?.errorSummary && (
-        <div className={last.status === 'failed' ? 'form-error' : 'sap-warning'} style={{ marginTop: '0.75rem' }}>
+        <div className={`${last.status === 'failed' ? 'form-error' : 'sap-warning'} mt-3`}>
           <AlertCircle size={15} /> {t('sapLastJob', 'Last job')} #{last.id}: {last.errorSummary}
           <button type="button" className="btn-link" onClick={() => setSelected(last.id)}>{t('sapViewErrors', 'View errors')}</button>
         </div>
@@ -300,14 +300,14 @@ const DashboardTab = ({ integration, onSyncNow, syncing, notify, onSummary }) =>
               <th>#</th><th>{t('status', 'Status')}</th><th>{t('sapTrigger', 'Trigger')}</th><th>{t('sapStarted', 'Started')}</th>
               <th>{t('sapDuration', 'Duration')}</th><th>{t('sapFetched', 'Fetched')}</th><th>{t('sapCreated', 'Created')}</th>
               <th>{t('sapUpdated', 'Updated')}</th><th>{t('sapSkipped', 'Skipped')}</th><th>{t('sapRejected', 'Rejected')}</th>
-              <th>{t('sapFailed', 'Failed')}</th><th style={{ textAlign: 'right' }}>{t('actions', 'Actions')}</th>
+              <th>{t('sapFailed', 'Failed')}</th><th className="text-right">{t('actions', 'Actions')}</th>
             </tr>
           </thead>
           <tbody>
             {loading && jobs.data.length === 0 ? (
-              <tr><td colSpan="12" style={{ textAlign: 'center' }}><Loader2 size={16} className="spin" /></td></tr>
+              <tr><td colSpan="12" className="text-center"><Loader2 size={16} className="spin" /></td></tr>
             ) : jobs.data.length === 0 ? (
-              <tr><td colSpan="12" className="sap-muted" style={{ textAlign: 'center', padding: '1.5rem' }}>{t('sapNoJobs', 'No synchronization has run yet.')}</td></tr>
+              <tr><td colSpan="12" className="sap-muted text-center p-6">{t('sapNoJobs', 'No synchronization has run yet.')}</td></tr>
             ) : jobs.data.map((j) => (
               <tr key={j.id}>
                 <td><button type="button" className="cell-link" onClick={() => setSelected(j.id)}>#{j.id}</button></td>
@@ -321,7 +321,7 @@ const DashboardTab = ({ integration, onSyncNow, syncing, notify, onSummary }) =>
                 <td>{formatNumber(j.records.unchanged)}</td>
                 <td className={j.records.rejected ? 'sap-warn-text' : ''}>{formatNumber(j.records.rejected)}</td>
                 <td className={j.records.failed ? 'sap-bad-text' : ''}>{formatNumber(j.records.failed)}</td>
-                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                <td className="text-right whitespace-nowrap">
                   <button type="button" className="btn btn-outline btn-sm" onClick={() => setSelected(j.id)}>
                     {t('details', 'Details')}{j.errorCount ? ` (${j.errorCount})` : ''}
                   </button>
