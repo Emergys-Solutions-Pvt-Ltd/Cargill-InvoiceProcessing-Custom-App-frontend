@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { ExternalLink, Paperclip } from 'lucide-react';
 import Modal from './Modal';
 import { LanguageContext } from '../context/LanguageContext';
+import { formatDateTime } from '../utils/dateTime';
 
 const initialsOf = (name = '') =>
   name
@@ -41,7 +42,7 @@ const SourceEmailPreview = ({ email, onClose, onSelectAttachment }) => {
               {email.cc.length > 0 && <span>{t('emailCc', 'Cc')}: {email.cc.join(', ')}</span>}
             </div>
           </div>
-          <time className="email-date">{email.receivedAt}</time>
+          <time className="email-date" dateTime={email.receivedAt}>{formatDateTime(email.receivedAt)}</time>
         </div>
 
         <div className="email-body">{email.body}</div>

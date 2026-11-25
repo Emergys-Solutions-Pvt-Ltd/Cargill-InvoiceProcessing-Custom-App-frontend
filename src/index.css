@@ -2247,3 +2247,66 @@ button.cell-link { background: none; border: none; padding: 0; font: inherit; }
   border: 1px solid rgba(255, 255, 255, 0.06);
   min-height: calc(100vh - 2.5rem);
 }
+
+/* Collapsible menu: toggle in the top-right corner of the menu; collapsed = icons only (GlobalLayout.jsx) */
+.sidebar {
+  transition: width 0.2s ease;
+}
+
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-right: -0.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-toggle:hover {
+  background: #f7f5f1;
+  color: var(--text-primary);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .sidebar-footer,
+.sidebar.collapsed .nav-section-header > svg {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-section-label {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  margin-right: 0;
+}
+
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .nav-section-header {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}

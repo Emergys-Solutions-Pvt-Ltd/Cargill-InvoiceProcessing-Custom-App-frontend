@@ -13,6 +13,7 @@ import {
   isSjoApp, useSjoOptions, emptySjoForm, missingSjoFields, SjoFieldInputs, SjoFlagInputs, SjoFlagBadges, SJO_FLAGS
 } from '../../components/SjoInvoiceFields';
 import { Field } from '../../components/FormField';
+import { formatDate, formatDateTime, todayLocal, toUtcIso } from '../../utils/dateTime';
 
 const VENDORS_LIST = [
   { name: 'Molinos Agro S.A.', cuit: '30-50001234-9' },
@@ -46,7 +47,7 @@ const CSV_TRUE = new Set(['true', 'yes', 'y', 'si', 'sí', 'x', '1']);
 
 /** One SJO bulk row; country / BU / ERP hold the Configuration code (the API also accepts names). */
 const sjoBulkRow = (appId, values = {}) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayLocal();
   return {
     id: values.id || `INV-${appId.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
     country: values.country ?? '',
@@ -120,8 +121,8 @@ const InvoiceList = () => {
     cuit: '30-50001234-9',
     amount: '15000.00',
     status: 'Pending',
-    receptionDate: new Date().toISOString().split('T')[0],
-    emailReceptionDate: `${new Date().toISOString().split('T')[0]} 10:00 AM`
+    receptionDate: todayLocal(),
+    emailReceptionDate: `${todayLocal()} 10:00 AM`
   });
 
   // Bulk Invoice Upload Modal State
@@ -149,8 +150,8 @@ const InvoiceList = () => {
       cuit: VENDORS_LIST[0].cuit,
       amount: '15000.00',
       status: 'Pending',
-      receptionDate: new Date().toISOString().split('T')[0],
-      emailReceptionDate: `${new Date().toISOString().split('T')[0]} 10:00 AM`,
+      receptionDate: todayLocal(),
+      emailReceptionDate: `${todayLocal()} 10:00 AM`,
       assignedUserId: '',
       ...emptySjoForm()
     });
@@ -195,7 +196,8 @@ const InvoiceList = () => {
     } else {
       if (!newInvoiceData.vendorName || !newInvoiceData.amount) return;
       const { id, vendorName, cuit, countryStation, invoice1a, invoice2a, amount, status, receptionDate, emailReceptionDate } = newInvoiceData;
-      payload = { id, vendorName, cuit, countryStation, invoice1a, invoice2a, amount, status, receptionDate, emailReceptionDate };
+      // Email reception date/time is entered in the user's time zone; the API stores it in UTC
+      payload = { id, vendorName, cuit, countryStation, invoice1a, invoice2a, amount, status, receptionDate, emailReceptionDate: toUtcIso(emailReceptionDate) };
     }
 
     try {
@@ -213,7 +215,7 @@ const InvoiceList = () => {
   const handleOpenBulkModal = () => {
     const random1 = Math.floor(1000 + Math.random() * 9000);
     const random2 = random1 + 1;
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocal();
 
     if (sjo) {
       const base = {
@@ -265,8 +267,8 @@ const InvoiceList = () => {
   const handleDownloadTemplate = () => {
     const csvContent = sjo ? [
       SJO_CSV_HEADER,
-      `IN-0001279524,NIC,CFN,JDE,135266470,39102783,CITIBANK NA,true,false,false,Pending,${new Date().toISOString().split('T')[0]}`,
-      `IN-0001279525,Costa Rica,CFN,SAP,3101123456,,,false,false,true,Pending,${new Date().toISOString().split('T')[0]}`
+      `IN-0001279524,NIC,CFN,JDE,135266470,39102783,CITIBANK NA,true,false,false,Pending,${todayLocal()}`,
+      `IN-0001279525,Costa Rica,CFN,SAP,3101123456,,,false,false,true,Pending,${todayLocal()}`
     ].join('\n') : [
       'Invoice ID,Vendor Name,CUIT,Country Station,1a Invoice,2a Invoice,Amount,Status,Reception Date',
       `INV-${appId.toUpperCase()}-8801,Molinos Agro S.A.,30-50001234-9,ARG - Rosario Port,0001-000501,0001-000502,18500.00,Pending,2026-07-22`,
@@ -299,7 +301,7 @@ const InvoiceList = () => {
         try {
           const parsed = JSON.parse(evt.target.result);
           const rawList = Array.isArray(parsed) ? parsed : (parsed.invoices || [parsed]);
-          const today = new Date().toISOString().split('T')[0];
+          const today = todayLocal();
           if (sjo) {
             setBulkData(rawList.map((item) => sjoBulkRow(appId, {
               ...item,
@@ -337,7 +339,7 @@ const InvoiceList = () => {
           const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
           if (lines.length === 0) return;
 
-          const today = new Date().toISOString().split('T')[0];
+          const today = todayLocal();
           const isHeader = lines[0].toLowerCase().includes('invoice') || lines[0].toLowerCase().includes('vendor');
           const dataLines = isHeader ? lines.slice(1) : lines;
 
@@ -399,7 +401,7 @@ const InvoiceList = () => {
       return;
     }
     const randomId = Math.floor(1000 + Math.random() * 9000);
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocal();
     const newRow = {
       id: `INV-${appId.toUpperCase()}-${randomId}`,
       vendorName: VENDORS_LIST[0].name,
@@ -448,7 +450,8 @@ const InvoiceList = () => {
     setBulkUploading(true);
     setBulkError(null);
     try {
-      const payload = bulkData.map((item) => ({ ...item }));
+      // Local email reception date/time -> UTC (rows without one are left out of the field)
+      const payload = bulkData.map((item) => (item.emailReceptionDate ? { ...item, emailReceptionDate: toUtcIso(item.emailReceptionDate) } : { ...item }));
       await apiClient.post(`/apps/${appId}/invoices/bulk`, { invoices: payload });
 
       setShowBulkModal(false);
@@ -544,7 +547,7 @@ const InvoiceList = () => {
   // Grid columns between Invoice ID and Status; key = value path, sortKey = sortable
   const lookupCell = (ref) => (ref ? <span title={ref.name}>{ref.code || ref.name}</span> : '-');
   const columns = sjo ? [
-    { key: 'receptionDate', label: t('receptionDate'), sortKey: 'receptionDate' },
+    { key: 'receptionDate', label: t('receptionDate'), sortKey: 'receptionDate', render: (inv) => formatDate(inv.receptionDate, '-') },
     { key: 'country', label: t('country', 'Country'), sortKey: 'sjoFields.country.code', render: (inv) => lookupCell(inv.sjoFields?.country) },
     { key: 'businessUnit', label: t('businessUnit', 'BU'), sortKey: 'sjoFields.businessUnit.code', render: (inv) => lookupCell(inv.sjoFields?.businessUnit) },
     { key: 'erp', label: t('erp', 'ERP'), sortKey: 'sjoFields.erpSystem.code', render: (inv) => lookupCell(inv.sjoFields?.erpSystem) },
@@ -554,8 +557,8 @@ const InvoiceList = () => {
     { key: 'assignedUser.name', label: t('assignTo', 'Assign To'), sortKey: 'assignedUser.name' },
     { key: 'flags', label: t('flags', 'Flags'), render: (inv) => <SjoFlagBadges sjo={inv.sjoFields} /> }
   ] : [
-    { key: 'receptionDate', label: t('receptionDate'), sortKey: 'receptionDate', render: (inv) => inv.receptionDate || inv.date || '-' },
-    { key: 'emailReceptionDate', label: t('emailReceptionDate') },
+    { key: 'receptionDate', label: t('receptionDate'), sortKey: 'receptionDate', render: (inv) => formatDate(inv.receptionDate || inv.date, '-') },
+    { key: 'emailReceptionDate', label: t('emailReceptionDate'), render: (inv) => formatDateTime(inv.emailReceptionDate, '-') },
     { key: 'invoice1a', label: t('firstInvoice') },
     { key: 'invoice2a', label: t('secondInvoice') },
     { key: 'countryStation', label: t('countryStation'), sortKey: 'countryStation' },

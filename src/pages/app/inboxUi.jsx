@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { LanguageContext } from '../../context/LanguageContext';
+import { formatDateTime, userTimeZone } from '../../utils/dateTime';
 
 /*
  * Shared pieces of the Inbox pages (Inbox.jsx, InboxEmailDetail.jsx).
@@ -48,14 +49,12 @@ export const InboxStatusOptions = () => {
   );
 };
 
-/** Local date + time of an ISO timestamp ("–" when empty or invalid). */
+/** MM/DD/YYYY hh:mm AM in the user's time zone ("–" when empty). */
 export const InboxDateTime = ({ value }) => {
   if (!value) return <>–</>;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return <>{value}</>;
   return (
-    <time dateTime={value}>
-      {d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+    <time dateTime={value} title={userTimeZone()}>
+      {formatDateTime(value)}
     </time>
   );
 };

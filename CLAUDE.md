@@ -28,6 +28,9 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 - **No inline CSS (VAPT / strict CSP):** never `style={...}`. Use Tailwind classes, MUI `sx`, or a class in `index.css`.
   Dynamic values: conditional full class names (Tailwind only sees literal class names), native attributes, or MUI `sx`.
   The production CSP allows `<style>` only with the nonce nginx injects (`nginx.conf`); MUI/Emotion gets it from `<meta name="csp-nonce">`.
+- **Dates / times:** the API sends timestamps in UTC (ISO 8601) and date-only values as YYYY-MM-DD. Show them only through
+  `src/utils/dateTime.js` (`formatDate` -> MM/DD/YYYY, `formatDateTime` -> MM/DD/YYYY hh:mm AM in the user's time zone);
+  send user-entered times with `toUtcIso`, and use `todayLocal()` (never `new Date().toISOString()` for a date).
 - New page: file under the right `pages/` area → route in `App.jsx` → menu entry in `GlobalLayout.jsx`.
 
 ## i18n (every visible string)

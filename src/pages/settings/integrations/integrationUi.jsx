@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useId, useState } from 'react';
 import { LanguageContext } from '../../../context/LanguageContext';
+import { formatDateTime as formatSharedDateTime } from '../../../utils/dateTime';
 
 /**
  * Shared building blocks of Settings > SAP Configuration: labelled fields with API validation
@@ -68,11 +69,8 @@ export const Toggle = ({ checked, onChange, label, disabled }) => (
   </label>
 );
 
-export const formatDateTime = (iso) => {
-  if (!iso) return '–';
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-};
+/** MM/DD/YYYY hh:mm AM in the user's time zone ("–" when empty) - see src/utils/dateTime.js. */
+export const formatDateTime = (iso) => formatSharedDateTime(iso);
 
 export const formatDuration = (ms) => {
   if (ms === null || ms === undefined) return '–';

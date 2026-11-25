@@ -9,9 +9,11 @@ import InvoicePdfViewer from '../../components/InvoicePdfViewer';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { Field, ReadOnly } from '../../components/FormField';
 import CcppTab from '../../components/CcppTab';
+import InvoiceAuditTab from '../../components/InvoiceAuditTab';
 import {
   SjoFieldInputs, SjoFlagInputs, sjoFormFrom, emptySjoForm, missingSjoFields, useSjoOptions
 } from '../../components/SjoInvoiceFields';
+import { formatDate, formatDateTime } from '../../utils/dateTime';
 
 const isSjoInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'SJO';
 const isGppInvoice = (invoice) => String(invoice?.applicationCode || '').toUpperCase() === 'GP';
@@ -37,9 +39,9 @@ const ROSPBU_FIELDS = [
   ['Número de Documento', (f) => f.numeroDocumento],
   ['General Comment', (f) => f.generalComment],
   ['Total de la FC', (f) => numberText(f.totalFc)],
-  ['Fecha de Fc', (f) => f.invoiceDate],
+  ['Fecha de Fc', (f) => formatDate(f.invoiceDate, null)],
   ['Centro Emisor', (f) => f.centroEmisor],
-  ['Fecha de Vencimiento', (f) => f.dueDate],
+  ['Fecha de Vencimiento', (f) => formatDate(f.dueDate, null)],
   ['Moneda de la Fc', (f) => f.currency],
   ['Nº de OC', (f) => f.poNumber],
   ['Instrumento de Pago', (f) => f.instrumentoPago],
@@ -61,16 +63,11 @@ const toForm = (invoice) => ({
   ...(isSjoInvoice(invoice) ? sjoFormFrom(invoice.sjoFields) : {})
 });
 
-// sfFields' date columns arrive as raw ISO 8601 (backend doesn't reformat them, unlike the rest
-// of Invoice Detail) — format client-side so they match the house display style.
+// sfFields' date columns: date-only ones as MM/DD/YYYY, timestamps as MM/DD/YYYY hh:mm AM in the user's time zone.
 const DATE_ONLY_SF_FIELDS = new Set(['caeExpirationDate', 'dueDateInvoice']);
 const formatSfDate = (key, value) => {
   if (!value) return value;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return DATE_ONLY_SF_FIELDS.has(key)
-    ? d.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
-    : d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return DATE_ONLY_SF_FIELDS.has(key) ? formatDate(value) : formatDateTime(value);
 };
 
 /**
@@ -199,7 +196,7 @@ const InvoiceDetails = () => {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null); // { ok, message }
   const [confirmSendBack, setConfirmSendBack] = useState(false);
-  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'ccpp'
+  const [activeTab, setActiveTab] = useState('details'); // 'details' | 'ccpp' | 'audit'
   const ccppTabRef = useRef(null);
 
   const showNotice = (ok, message) => {
@@ -352,6 +349,13 @@ const InvoiceDetails = () => {
               {t('ccpp', 'CCPP')}
             </button>
           )}
+          <button
+            type="button"
+            className={`tab-link ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            {t('auditHistory', 'Audit History')}
+          </button>
         </div>
         {activeTab === 'ccpp' && (
           <button type="button" className="btn btn-primary mb-[0.4rem]" onClick={() => ccppTabRef.current?.openAdd()}>
@@ -367,6 +371,8 @@ const InvoiceDetails = () => {
       )}
 
       {activeTab === 'ccpp' && <CcppTab ref={ccppTabRef} appId={appId} invoiceId={invoice.id} />}
+
+      {activeTab === 'audit' && <InvoiceAuditTab appId={appId} invoiceId={invoice.id} />}
 
       {activeTab === 'details' && (
       <div className="details-split">
@@ -430,7 +436,7 @@ const InvoiceDetails = () => {
                 <textarea className="input-field resize-y" rows={3} maxLength={1000} value={form.additionalInfo} onChange={set('additionalInfo')} />
               </Field>
 
-              <Field label={t('emailReceptionDate', 'Email Reception Date')}><ReadOnly value={invoice.emailReceptionDateTime} /></Field>
+              <Field label={t('emailReceptionDate', 'Email Reception Date')}><ReadOnly value={formatDateTime(invoice.emailReceptionDateTime, null)} /></Field>
               <Field label={t('changeProcess', 'Change Process')}>
                 <select className="input-field" value={form.processId} onChange={set('processId')}>
                   <option value="">--{t('none', 'None')}--</option>
@@ -453,8 +459,8 @@ const InvoiceDetails = () => {
               <Field label={t('cuit', 'CUIT')}><ReadOnly value={invoice.cuit} /></Field>
               <Field label={t('firstInvoice', '1a Invoice')}><ReadOnly value={invoice.invoice1a} /></Field>
               <Field label={t('secondInvoice', '2a Invoice')}><ReadOnly value={invoice.invoice2a} /></Field>
-              <Field label={t('invoiceDate', 'Invoice Date')}><ReadOnly value={invoice.invoiceDate} /></Field>
-              <Field label={t('receptionDate', 'Reception Date')}><ReadOnly value={invoice.receptionDate} /></Field>
+              <Field label={t('invoiceDate', 'Invoice Date')}><ReadOnly value={formatDate(invoice.invoiceDate, null)} /></Field>
+              <Field label={t('receptionDate', 'Reception Date')}><ReadOnly value={formatDate(invoice.receptionDate, null)} /></Field>
               <Field label={t('countryStation', 'Country Station')}><ReadOnly value={invoice.countryStation} /></Field>
               <Field label={t('invoiceSubtotalWithTax', 'Subtotal with Tax')}>
                 <ReadOnly value={invoice.invoiceSubtotalWithTax ? `$${invoice.invoiceSubtotalWithTax}` : null} />

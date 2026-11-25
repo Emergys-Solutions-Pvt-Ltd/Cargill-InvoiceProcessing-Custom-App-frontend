@@ -8,14 +8,18 @@ import {
   BarChart3,
   Globe,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import cargillLogo from '../assets/cargill_logo.svg';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../context/LanguageContext';
+import { storageService } from '../services/storage.service';
 import { APPS } from '../utils/appHelper';
 
 const APP_ICONS = { GP: CreditCard, sjo: FileText, rospbu: BarChart3 };
+const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
 
 const getInitials = (name = '') =>
   name
@@ -27,8 +31,11 @@ const getInitials = (name = '') =>
     .map((part) => part[0].toUpperCase())
     .join('') || '?';
 
-/** One collapsible menu section ("Settings" > Users / Configuration / SAP / OnBase Configuration). */
-const NavSection = ({ icon: Icon, label, basePath, active, children }) => {
+/**
+ * One collapsible menu section ("Settings" > Users / Configuration / SAP / OnBase Configuration).
+ * In the collapsed (icons-only) menu a click expands the menu and opens the section.
+ */
+const NavSection = ({ icon: Icon, label, basePath, active, collapsed, onExpandMenu, children }) => {
   const [open, setOpen] = useState(active);
 
   // Opening a page inside the section (e.g. from a link) expands it
@@ -41,17 +48,26 @@ const NavSection = ({ icon: Icon, label, basePath, active, children }) => {
       <button
         type="button"
         className={`nav-section-header ${active ? 'active-parent' : ''}`}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
+        onClick={() => {
+          if (collapsed) {
+            onExpandMenu();
+            setOpen(true);
+          } else {
+            setOpen((o) => !o);
+          }
+        }}
+        aria-expanded={collapsed ? false : open}
+        aria-label={collapsed ? label : undefined}
+        title={collapsed ? label : undefined}
         data-base-path={basePath}
       >
         <span className="nav-section-left">
           <Icon size={17} />
-          {label}
+          <span className="nav-label">{label}</span>
         </span>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
       </button>
-      {open && <div className="nav-submenu">{children}</div>}
+      {open && !collapsed && <div className="nav-submenu">{children}</div>}
     </div>
   );
 };
@@ -72,6 +88,14 @@ const GlobalLayout = () => {
   const canAccessAdmin = isAdmin();
   const visibleApps = APPS.filter((app) => hasAppAccess(app.id));
   const roleLabel = canAccessAdmin ? 'Admin' : 'User';
+
+  // Menu collapsed to icons only; remembered in this browser
+  const [collapsed, setCollapsed] = useState(() => storageService.get(SIDEBAR_COLLAPSED_KEY) === true);
+  const setMenuCollapsed = (value) => {
+    setCollapsed(value);
+    storageService.set(SIDEBAR_COLLAPSED_KEY, value);
+  };
+  const toggleLabel = collapsed ? t('expandMenu', 'Expand menu') : t('collapseMenu', 'Collapse menu');
 
   const handleLogout = () => {
     logout();
@@ -113,10 +137,20 @@ const GlobalLayout = () => {
       </header>
 
       <div className="app-container">
-        <aside className="sidebar">
-          <nav className="sidebar-nav">
+        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+          <nav className="sidebar-nav" aria-label={t('menu', 'Menu')}>
             <div className="sidebar-section-label">
-              <span>{t('menu', 'Menu')}</span>
+              <span className="nav-label">{t('menu', 'Menu')}</span>
+              <button
+                type="button"
+                className="sidebar-toggle"
+                onClick={() => setMenuCollapsed(!collapsed)}
+                aria-label={toggleLabel}
+                aria-expanded={!collapsed}
+                title={toggleLabel}
+              >
+                {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              </button>
             </div>
 
             {/* One entry per app; its pages (Invoices / Team Assignment) are tabs inside the app */}
@@ -125,9 +159,15 @@ const GlobalLayout = () => {
               const inApp = location.pathname.startsWith(`${basePath}/`) || location.pathname === basePath;
               const Icon = APP_ICONS[app.id] ?? FileText;
               return (
-                <NavLink key={app.id} to={`${basePath}/invoices`} className={`nav-item ${inApp ? 'active' : ''}`}>
+                <NavLink
+                  key={app.id}
+                  to={`${basePath}/invoices`}
+                  className={`nav-item ${inApp ? 'active' : ''}`}
+                  title={collapsed ? t(app.nameKey, app.name) : undefined}
+                  aria-label={collapsed ? t(app.nameKey, app.name) : undefined}
+                >
                   <Icon size={17} />
-                  {t(app.nameKey, app.name)}
+                  <span className="nav-label">{t(app.nameKey, app.name)}</span>
                 </NavLink>
               );
             })}
@@ -138,6 +178,8 @@ const GlobalLayout = () => {
                 label={t('settings')}
                 basePath="/settings"
                 active={location.pathname.startsWith('/settings')}
+                collapsed={collapsed}
+                onExpandMenu={() => setMenuCollapsed(false)}
               >
                 <SubItem to="/settings/users" label={t('usersMenu', 'Users')} />
                 <SubItem to="/settings/configuration" label={t('configurationMenu', 'Configuration')} />

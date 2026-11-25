@@ -26,6 +26,45 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-24 — Date/time localization: user time zone, MM/DD/YYYY (Feature: localization)
+**Agent:** frontend-agent · **Status:** Done (build + lint; formatter checked in UTC+05:30; Details / Audit History checked in the browser with a mocked API) · **Handoffs:** none
+
+- `src/utils/dateTime.js` (new) — `formatDate` (MM/DD/YYYY; date-only values never shifted), `formatDateTime`
+  (MM/DD/YYYY hh:mm AM in the browser's time zone), `toUtcIso` (local entry -> UTC for the API), `todayLocal`, `userTimeZone`.
+- Used by: Invoices grid (reception date, email reception date), Invoice Details (email reception, invoice / reception dates,
+  ROSPBU dates, Salesforce dates), Audit History, Inbox, source email preview, Email Configuration and Integrations pages
+  (`emailUI.formatDateTime` / `integrationUi.formatDateTime` delegate to it).
+- Create Invoice / Bulk Upload: "today" is the user's local date (was the UTC date); the email reception date/time typed by the
+  user is sent as UTC (`toUtcIso`).
+
+### Known limits
+- Native `<input type="date">` pickers (ROSPBU create, integration filters) display in the browser's locale format; the value is
+  still YYYY-MM-DD. Currency formatting was left unchanged (user decision).
+
+---
+
+## 2026-11-24 — Invoice Details "Audit History" tab (Feature: invoice-audit-history)
+**Agent:** frontend-agent · **Status:** Done (build + lint; checked in the browser with a mocked API) · **Handoffs:** none
+
+- `src/components/InvoiceAuditTab.jsx` (new) — table: date & time (user's locale), action badge, user ("System" for sync /
+  mailbox changes), changed fields as "Field: old -> new" (known fields translated, others humanized; true/false as Yes/No).
+  Loads `GET /apps/:appId/invoices/:invoiceId/audit-history` each time the tab opens; Refresh button.
+- `src/pages/app/InvoiceDetails.jsx` — third tab "Audit History" next to Details / CCPP (every app).
+- Locales: `auditHistory`, `audit*` keys, `yes`, `no`.
+
+---
+
+## 2026-11-24 — Collapsible side menu (Feature: menu-collapse)
+**Agent:** frontend-agent · **Status:** Done (build + lint; checked in the browser under the strict CSP, no API) · **Handoffs:** none
+
+- `src/components/GlobalLayout.jsx` — collapse / expand button (PanelLeftClose / PanelLeftOpen) in the top-right corner of the menu;
+  collapsed = 64 px, icons only with tooltips; clicking the Settings icon expands the menu and opens the section. The choice is
+  kept in localStorage (`sidebarCollapsed`).
+- `src/index.css` — `.sidebar-toggle`, `.sidebar.collapsed` rules, width transition (off with prefers-reduced-motion).
+- Locales: `collapseMenu`, `expandMenu`.
+
+---
+
 ## 2026-11-23 — Environment layer (_DEV / _STG / production variables) + .vela per-branch pipeline (Feature: env-layer)
 **Agent:** frontend-agent · **Status:** Done (build + lint; DEV/STG/PROD bundles checked; Docker images not built - no Docker here) · **Handoffs:** none
 
