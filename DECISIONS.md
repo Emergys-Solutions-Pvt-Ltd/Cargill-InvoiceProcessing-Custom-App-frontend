@@ -21,6 +21,7 @@ Newest on top. Never delete; mark replaced ones `Superseded by D-FE-xxx`.
   to it. Any filter change other than the page resets the page to 1.
 - Why: Back (link or browser), refresh and shared links all return to the same filtered list.
 - Rejected alternatives: component state only (lost on Back and refresh); a context/store (none used in this repo).
+- Status: obsolete since 2026-11-25 — the Inbox pages were removed from the UI (user request).
 
 ### D-FE-004 — 2026-11-04 — Email Registration list reloads after every write
 - Decided by: frontend-agent within the approved task (parent D-018j allowed either option)

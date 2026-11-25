@@ -26,6 +26,27 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-25 — Inbox tab and pages removed from every application (Feature: email-inbox)
+**Agent:** frontend-agent · **Status:** Done (build + lint) · **Handoffs:** none
+
+### What changed
+- `src/components/AppLayout.jsx` — the "Inbox" tab is gone; the app tab bar is Invoices (+ Team Assignment for admins).
+- Deleted `src/pages/app/Inbox.jsx`, `InboxEmailDetail.jsx`, `inboxUi.jsx` and `src/services/mailboxEmails.service.js`
+  (nothing else used them); `src/App.jsx` no longer has the `inbox` / `inbox/:emailId` routes (those URLs now fall through
+  to the app's catch-all like any unknown path).
+- `src/index.css` — the `inbox-*` block removed. `src/locales/en.json`, `es.json` — the 50 `inbox*` keys removed.
+- `DECISIONS.md` D-FE-005 marked obsolete.
+
+### Why
+User request: remove the Inbox tab from the invoice list page, and its pages too.
+
+### Not changed
+- Backend `/apps/{appId}/mailbox-emails` and `/apps/{appId}/mailboxes` endpoints stay (no UI uses them now).
+- Mailbox registration in Settings > Email Configuration is unchanged (it still uses the `inbox` folder default).
+- `nginx.conf` (protected) still mentions InboxEmailDetail in a comment only; no behaviour depends on it.
+
+---
+
 ## 2026-11-24 — Date/time localization: user time zone, MM/DD/YYYY (Feature: localization)
 **Agent:** frontend-agent · **Status:** Done (build + lint; formatter checked in UTC+05:30; Details / Audit History checked in the browser with a mocked API) · **Handoffs:** none
 

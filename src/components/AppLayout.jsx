@@ -1,11 +1,11 @@
 import React, { useContext } from 'react';
 import { Outlet, NavLink, useParams, useLocation } from 'react-router-dom';
-import { FileText, Mail, Users } from 'lucide-react';
+import { FileText, Users } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { LanguageContext } from '../context/LanguageContext';
 import { APPS, getAppName } from '../utils/appHelper';
 
-/** Shell of one invoice app: title + tabs (Invoices / Inbox / Team Assignment) + the current page. */
+/** Shell of one invoice app: title + tabs (Invoices / Team Assignment) + the current page. */
 const AppLayout = () => {
   const params = useParams();
   const { t } = useContext(LanguageContext);
@@ -29,9 +29,6 @@ const AppLayout = () => {
       <div className="tab-bar">
         <NavLink to={`${basePath}/invoices`} className={({ isActive }) => `tab-link ${isActive ? 'active' : ''}`}>
           <FileText size={15} /> {t('invoicesMenu', 'Invoices')}
-        </NavLink>
-        <NavLink to={`${basePath}/inbox`} className={({ isActive }) => `tab-link ${isActive ? 'active' : ''}`}>
-          <Mail size={15} /> {t('inboxMenu', 'Inbox')}
         </NavLink>
         {isAdmin() && (
           <NavLink to={`${basePath}/team`} className={({ isActive }) => `tab-link ${isActive ? 'active' : ''}`}>
