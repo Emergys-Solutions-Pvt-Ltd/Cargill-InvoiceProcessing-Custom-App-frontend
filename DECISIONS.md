@@ -14,6 +14,18 @@ Newest on top. Never delete; mark replaced ones `Superseded by D-FE-xxx`.
 
 ---
 
+### D-FE-006 — 2026-11-27 — Generic Button follows Figma, built on MUI ButtonBase
+- Decided by: user (accepted the defaults proposed by frontend-agent)
+- Decision: `src/components/Button.jsx` implements the Figma Buttons (node 1:1465) on MUI `ButtonBase`, styled with `--btn-*` CSS
+  variables from `index.css`. The Figma greens are scoped to Button; the app palette is not changed yet. Figma's "Cancel" / "Delete"
+  are `color="neutral"` / `color="danger"`; their Hover and Disabled (not in Figma) are derived tokens. A visible focus ring is added;
+  no loading or icon-only variant.
+- Why: matches how Modal / Pager / ConfirmDialog are built on MUI, and gives focus handling, disabled behaviour and `component` /
+  `href` for free; keeping the palette change separate avoids restyling every screen at once.
+- Rejected alternatives: plain `<button>` with Tailwind (the repo's `!important` utilities make caller overrides unpredictable);
+  full MUI `Button` with theme variants (MUI's own padding, icon margins and variants would all need overriding); changing the app palette first.
+- Status: open: align `--primary-color` (#167A3C) with the Figma green (#00843D), and confirm the derived Cancel / Delete tokens with the designer.
+
 ### D-FE-005 — 2026-11-05 — Inbox filters live in the URL query
 - Decided by: frontend-agent within the approved task (parent D-023 left the choice open: "URL query or state")
 - Decision: the Inbox list keeps `status`, `mailboxId`, `search`, `page`, `limit` in the URL query (defaults omitted,

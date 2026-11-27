@@ -10,7 +10,7 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 
 ## Layout
 - `src/App.jsx` — all routes (`<Routes>`); `src/index.css` — the one global stylesheet
-- `src/components/` — shared widgets (Modal, ConfirmDialog, Pager, FormField, CcppTab, SjoInvoiceFields, InvoicePdfViewer …)
+- `src/components/` — shared widgets (Button, Modal, ConfirmDialog, Pager, FormField, CcppTab, SjoInvoiceFields, InvoicePdfViewer …)
 - `src/context/` — `AuthContext`, `LanguageContext`, `ThemeContext`
 - `src/locales/` — `en.json`, `es.json`
 - `src/services/` — `network.service.js` (axios `apiClient`), `auth.service.js`, storage, `statuses.js` (/lookups cache)
@@ -45,7 +45,9 @@ App routes are generated from `APPS` with literal paths, so `useParams().appId` 
 Filters and paging are local state; sorting is client-side on the current page only. Pattern: debounced `useEffect` + `reloadKey`.
 
 ## Reuse first
+`Button` (Figma buttons: variant primary|secondary|tertiary|link, color default|neutral|danger, size xs|sm|md|lg; tokens `--btn-*` in `index.css`),
 `Modal`, `ConfirmDialog`, `Pager`, `Field`/`ReadOnly` (FormField), `formatDate*` (dateTime.js), `useStatuses`, `useSjoOptions`.
+New buttons use `Button`; the `.btn*` classes and MUI `<Button>` in older screens are legacy until migrated.
 New modals use `Modal` (InvoiceList's hand-rolled overlays are legacy). Lists use `Pager`.
 
 ## i18n (every visible string)

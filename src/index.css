@@ -68,6 +68,31 @@ button, input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* Button tokens: Figma "LATAM Invoice Workflow" > Buttons (node 1:1465), used by src/components/Button.jsx.
+   Kept apart from the app palette above on purpose (the Figma greens differ from --primary-color).
+   Tokens marked "derived" are not in Figma (Cancel / Delete have no Hover or Disabled there): confirm with the designer. */
+:root {
+  --btn-primary: #00843d;               /* Primary/700: Primary fill, Secondary border and text */
+  --btn-primary-hover: #006b32;         /* Primary/800 */
+  --btn-primary-disabled: #78c596;      /* Primary/300: Primary disabled fill */
+  --btn-primary-muted: #4ab174;         /* Primary/400: Secondary and Text Link disabled */
+  --btn-primary-light: #e8f4ec;         /* Primary Light: Secondary fill */
+  --btn-primary-light-hover: #a5d8ba;   /* Primary/200: Secondary hover fill */
+  --btn-neutral: #6b7280;               /* Gray/500: Cancel */
+  --btn-neutral-light: #f9fafb;         /* Gray/50: Cancel Secondary fill */
+  --btn-neutral-text: #374151;          /* Gray/700: Tertiary text */
+  --btn-neutral-muted: #9ca3af;         /* Gray/400: Tertiary disabled */
+  --btn-danger: #c81e1e;                /* Red/700: Delete */
+  --btn-danger-light: #fdf2f2;          /* Red/50: Delete Secondary fill */
+  /* derived */
+  --btn-neutral-hover: #4b5563;         /* Gray/600: one step darker */
+  --btn-neutral-light-hover: #f3f4f6;   /* Gray/100 */
+  --btn-neutral-disabled: color-mix(in srgb, var(--btn-neutral) 50%, white);
+  --btn-danger-hover: #9b1c1c;          /* Red/800: one step darker */
+  --btn-danger-light-hover: #fde8e8;    /* Red/100 */
+  --btn-danger-disabled: color-mix(in srgb, var(--btn-danger) 50%, white);
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

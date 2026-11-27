@@ -26,6 +26,37 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-27 — Generic Button component from Figma (Feature: ui-button)
+**Agent:** frontend-agent · **Status:** Done (build + lint; all 46 Figma variants compared in the browser with a temporary gallery, since removed) · **Handoffs:** none
+
+### What changed
+- `src/components/Button.jsx` (new) — `Button`: variant `primary | secondary | tertiary | link`, color `default | neutral | danger`
+  (Figma's "Cancel" / "Delete"), size `xs | sm | md | lg`, `startIcon` / `endIcon`, MUI `ButtonBase` underneath (focus, disabled,
+  `component` / `href`), `type="button"` by default, visible keyboard focus ring.
+- `src/index.css` — `--btn-*` Figma colour tokens (before the legacy `.btn` rules); the derived ones are marked.
+- `CLAUDE.md` — Button added to the shared widgets and to "Reuse first".
+- `DECISIONS.md` — D-FE-006.
+
+### Why
+User request: build generic reusable components from the Figma file, Button first (Buttons node 1:1465).
+
+### Cross-repo impact
+- None
+
+### New env vars / dependencies / commands for the user
+- None
+
+### Still to do / known issues
+- No screen uses `Button` yet. Migrating the `.btn` classes (about 90 uses) and the MUI `<Button>` in `Login.jsx` / `ConfirmDialog.jsx` is a
+  separate task; the legacy `.btn*` CSS stays until then. `btn-send-back` (blue) and the icon-only buttons have no Figma equivalent.
+- Cancel / Delete Hover and Disabled are not in Figma: derived tokens (Gray/600, Red/800, 50% mix with white; light fills Gray/100, Red/100). Confirm with the designer.
+- Figma's greens (#00843D, hover #006B32) differ from `--primary-color` (#167A3C); Button uses its own tokens, the app palette is unchanged.
+- Rendered widths are about 1 px below the Figma frames (Figma's text frames are wider than the rendered Inter label); heights, padding, gap,
+  icon sizes and colours match. Checked at a 1.25 device pixel ratio only (Chrome draws the 1 px Secondary border as 0.8 px there).
+- Tertiary and Text Link are 19 px tall as drawn in Figma, below the 24 px WCAG 2.2 target size.
+
+---
+
 ## 2026-11-25 — Inbox tab and pages removed from every application (Feature: email-inbox)
 **Agent:** frontend-agent · **Status:** Done (build + lint) · **Handoffs:** none
 
