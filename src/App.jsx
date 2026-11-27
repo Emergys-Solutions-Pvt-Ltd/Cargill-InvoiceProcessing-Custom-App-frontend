@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import ToastProvider from './context/ToastProvider';
 
 // Layouts & Guards
 import GlobalLayout from './components/GlobalLayout';
@@ -31,60 +32,62 @@ function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<Login />} />
+        <ToastProvider>
+          <AuthProvider>
+            <Router>
+              <Routes>
+                <Route path="/login" element={<Login />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/"
-                element={
-                  <AuthRoute>
-                    <GlobalLayout />
-                  </AuthRoute>
-                }
-              >
-                <Route index element={<SmartRedirect />} />
+                {/* Protected Routes */}
+                <Route
+                  path="/"
+                  element={
+                    <AuthRoute>
+                      <GlobalLayout />
+                    </AuthRoute>
+                  }
+                >
+                  <Route index element={<SmartRedirect />} />
 
-                {/*
-                  General Payments, SJO Invoice Processing, ROSPBU Invoice Processing - same pages each:
-                    invoices             Invoice list with pagination, filter and search
-                    invoices/new         ROSPBU only: Create Invoice page ("ROSPBU Invoice Edit" fields)
-                    invoices/:invoiceId  Invoice details with PDF preview
-                    team                 Team assignment: add & remove users (admin)
-                */}
-                {APPS.map((app) => (
-                  <Route key={app.id} path={`app/${app.id}`} element={<AuthRoute requireApp={app.id}><AppLayout /></AuthRoute>}>
-                    <Route index element={<Navigate to="invoices" replace />} />
-                    <Route path="invoices" element={<InvoiceList />} />
-                    {app.id === 'rospbu' && <Route path="invoices/new" element={<RospbuInvoiceCreate />} />}
-                    <Route path="invoices/:invoiceId" element={<InvoiceDetails />} />
-                    <Route path="team" element={<AuthRoute requireAdmin={true}><TeamAssignment /></AuthRoute>} />
+                  {/*
+                    General Payments, SJO Invoice Processing, ROSPBU Invoice Processing - same pages each:
+                      invoices             Invoice list with pagination, filter and search
+                      invoices/new         ROSPBU only: Create Invoice page ("ROSPBU Invoice Edit" fields)
+                      invoices/:invoiceId  Invoice details with PDF preview
+                      team                 Team assignment: add & remove users (admin)
+                  */}
+                  {APPS.map((app) => (
+                    <Route key={app.id} path={`app/${app.id}`} element={<AuthRoute requireApp={app.id}><AppLayout /></AuthRoute>}>
+                      <Route index element={<Navigate to="invoices" replace />} />
+                      <Route path="invoices" element={<InvoiceList />} />
+                      {app.id === 'rospbu' && <Route path="invoices/new" element={<RospbuInvoiceCreate />} />}
+                      <Route path="invoices/:invoiceId" element={<InvoiceDetails />} />
+                      <Route path="team" element={<AuthRoute requireAdmin={true}><TeamAssignment /></AuthRoute>} />
+                    </Route>
+                  ))}
+
+                  {/* Settings (Admin Role Required): Users + Configuration (master data) + SAP / OnBase Configuration (integrations) */}
+                  <Route path="settings" element={<AuthRoute requireAdmin={true} />}>
+                    <Route index element={<Navigate to="users" replace />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="configuration" element={<Configuration />} />
+                    <Route path="configuration/:entity" element={<Configuration />} />
+                    <Route path="sap-configuration" element={<IntegrationList providerType="sap-odata" />} />
+                    <Route path="sap-configuration/:id" element={<IntegrationDetail providerType="sap-odata" />} />
+                    <Route path="sap-configuration/:id/:tab" element={<IntegrationDetail providerType="sap-odata" />} />
+                    <Route path="onbase-configuration" element={<IntegrationList providerType="onbase-rest" />} />
+                    <Route path="onbase-configuration/:id" element={<IntegrationDetail providerType="onbase-rest" />} />
+                    <Route path="onbase-configuration/:id/:tab" element={<IntegrationDetail providerType="onbase-rest" />} />
+                    <Route path="email-configuration" element={<EmailConfigurationForm />} />
+                    <Route path="email-configuration/:tab" element={<EmailConfigurationForm />} />
                   </Route>
-                ))}
-
-                {/* Settings (Admin Role Required): Users + Configuration (master data) + SAP / OnBase Configuration (integrations) */}
-                <Route path="settings" element={<AuthRoute requireAdmin={true} />}>
-                  <Route index element={<Navigate to="users" replace />} />
-                  <Route path="users" element={<Users />} />
-                  <Route path="configuration" element={<Configuration />} />
-                  <Route path="configuration/:entity" element={<Configuration />} />
-                  <Route path="sap-configuration" element={<IntegrationList providerType="sap-odata" />} />
-                  <Route path="sap-configuration/:id" element={<IntegrationDetail providerType="sap-odata" />} />
-                  <Route path="sap-configuration/:id/:tab" element={<IntegrationDetail providerType="sap-odata" />} />
-                  <Route path="onbase-configuration" element={<IntegrationList providerType="onbase-rest" />} />
-                  <Route path="onbase-configuration/:id" element={<IntegrationDetail providerType="onbase-rest" />} />
-                  <Route path="onbase-configuration/:id/:tab" element={<IntegrationDetail providerType="onbase-rest" />} />
-                  <Route path="email-configuration" element={<EmailConfigurationForm />} />
-                  <Route path="email-configuration/:tab" element={<EmailConfigurationForm />} />
                 </Route>
-              </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ToastProvider>
       </LanguageProvider>
     </ThemeProvider>
   );

@@ -93,6 +93,19 @@ button, input, select, textarea {
   --btn-danger-disabled: color-mix(in srgb, var(--btn-danger) 50%, white);
 }
 
+/* Toast tokens: Figma "LATAM Invoice Workflow" > Toast component (node 1:1978), used by src/components/Toast.jsx. */
+:root {
+  --toast-text: #1f2a37;               /* Gray/800 */
+  --toast-info-bg: #ebf5ff;            /* Blue/50 */
+  --toast-info-border: #3f83f8;        /* Blue/500 */
+  --toast-warning-bg: #fdfdea;         /* Yellow/50 */
+  --toast-warning-border: #e3a008;     /* Yellow/400 */
+  --toast-danger-bg: #fdf2f2;          /* Red/50 */
+  --toast-danger-border: #f05252;      /* Red/500 */
+  --toast-success-bg: #f3faf7;         /* Green/50 */
+  --toast-success-border: #0e9f6e;     /* Green/500 */
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

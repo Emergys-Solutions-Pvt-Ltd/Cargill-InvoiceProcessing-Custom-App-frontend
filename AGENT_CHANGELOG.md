@@ -26,6 +26,41 @@ Written for a future developer who has no context.
 
 ---
 
+## 2026-11-27 — Toast component and global useToast() (Feature: ui-toast)
+**Agent:** frontend-agent · **Status:** Done (build + lint; the 4 Figma types compared in the browser and the behaviour tested with a temporary gallery, since removed) · **Handoffs:** none
+
+### What changed
+- `src/components/Toast.jsx` (new) — `Toast`: `type` `info | warning | danger | success`, optional close button (`onClose`, `closeIcon`),
+  messages wrap up to 3 lines then end with an ellipsis (full text as tooltip on hover), `role` alert (warning / danger) or status (info / success).
+- `src/context/ToastContext.js` (new) — `ToastContext` and `useToast()`; `src/context/ToastProvider.jsx` (new) — provider on MUI `Snackbar`:
+  top-right stack, Success / Info close after 4 s, Warning / Danger after 6 s, X closes, timer pauses while hovered or focused.
+- `src/assets/icons/toast-{info,warning,danger,success,close}.svg` (new) — the Figma icons, unchanged.
+- `src/index.css` — `--toast-*` Figma colour tokens.
+- `src/App.jsx` — `<ToastProvider>` between `LanguageProvider` and `AuthProvider`; the block inside is indented two more spaces (use `git diff -w`).
+- `CLAUDE.md`, `DECISIONS.md` (D-FE-007).
+
+### Why
+User request: build generic reusable components from the Figma file, Toast second (Toast component node 1:1978).
+
+### Cross-repo impact
+- None
+
+### New env vars / dependencies / commands for the user
+- None
+
+### Still to do / known issues
+- No screen uses `useToast()` yet. 8 files still hand-roll their own toast or notice with a `setTimeout`: `InvoiceList`, `InvoiceDetails`,
+  `TeamAssignment`, `CcppTab`, `Users`, `Configuration`, `EmailRegistrationTab`, `IntegrationDetail`. Migrating them is a separate task.
+- Bundle +12.7 kB (4.3 kB gzip): the provider is mounted app-wide.
+- Not verified under the production CSP (the dev server sends none). The icons are bundled as `data:` URIs, which `img-src` allows; check once on a DEV deployment.
+  The Figma SVGs carry an inline `style="display: block"` as exported, kept unchanged.
+- A toast does not survive a full page reload (for example the 401 redirect, which uses `window.location`).
+- Figma's Theme property only has Light: no `theme` prop (the app is light-only).
+- Checked at a 1.25 device pixel ratio only (heights read 44.6 px against Figma's 45 because Chrome draws the 1 px border as 0.8 px there).
+- Details applied without a question are listed in D-FE-007.
+
+---
+
 ## 2026-11-27 — Generic Button component from Figma (Feature: ui-button)
 **Agent:** frontend-agent · **Status:** Done (build + lint; all 46 Figma variants compared in the browser with a temporary gallery, since removed) · **Handoffs:** none
 

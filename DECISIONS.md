@@ -14,6 +14,21 @@ Newest on top. Never delete; mark replaced ones `Superseded by D-FE-xxx`.
 
 ---
 
+### D-FE-007 — 2026-11-27 — Toast: Figma component plus global useToast() on MUI Snackbar
+- Decided by: user (choose each option in a multiple-choice question)
+- Decision: `src/components/Toast.jsx` implements the Figma Toast (node 1:1978); `ToastProvider` / `useToast()` are mounted once in `App.jsx`.
+  Toasts stack top-right; Success and Info close after 4 s, Warning and Danger after 6 s; the X closes one; the timer pauses on hover and focus.
+  Icons are the Figma SVGs in `src/assets/icons`. Messages wrap up to 3 lines, then an ellipsis with the full text as a hover tooltip
+  (Figma shows a single line).
+- Why: 8 screens each hand-write a toast with their own `setTimeout` (3 to 6 s); one provider gives them one look and one timing, and MUI
+  Snackbar supplies the timer and the pause on hover.
+- Rejected alternatives: the visual component alone (every screen keeps its own timer); migrating the 8 screens in the same step (larger
+  change); lucide icons (not exact, or visibly different from Figma's filled circles); one line with an ellipsis exactly like Figma (hides
+  long error details); Danger toasts that never auto-dismiss; bottom-center position.
+- Status: applied without being asked, to confirm: no enter / exit animation; no limit on stacked toasts; `role="alert"` for warning and
+  danger, `role="status"` for info and success; `toast.error()` creates type `danger`; after a hover the timer restarts at half the time
+  (MUI default); Escape does not close toasts (it also closes dialogs). Existing screens are not migrated yet.
+
 ### D-FE-006 — 2026-11-27 — Generic Button follows Figma, built on MUI ButtonBase
 - Decided by: user (accepted the defaults proposed by frontend-agent)
 - Decision: `src/components/Button.jsx` implements the Figma Buttons (node 1:1465) on MUI `ButtonBase`, styled with `--btn-*` CSS

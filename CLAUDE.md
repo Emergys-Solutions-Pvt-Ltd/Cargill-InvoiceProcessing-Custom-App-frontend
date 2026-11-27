@@ -10,8 +10,8 @@ Three apps share the UI: GP, sjo, rospbu (`src/utils/appHelper.js` → `APPS`).
 
 ## Layout
 - `src/App.jsx` — all routes (`<Routes>`); `src/index.css` — the one global stylesheet
-- `src/components/` — shared widgets (Button, Modal, ConfirmDialog, Pager, FormField, CcppTab, SjoInvoiceFields, InvoicePdfViewer …)
-- `src/context/` — `AuthContext`, `LanguageContext`, `ThemeContext`
+- `src/components/` — shared widgets (Button, Toast, Modal, ConfirmDialog, Pager, FormField, CcppTab, SjoInvoiceFields, InvoicePdfViewer …)
+- `src/context/` — `AuthContext`, `LanguageContext`, `ThemeContext`, `ToastContext.js` (+ `ToastProvider.jsx`, mounted in `App.jsx`)
 - `src/locales/` — `en.json`, `es.json`
 - `src/services/` — `network.service.js` (axios `apiClient`), `auth.service.js`, storage, `statuses.js` (/lookups cache)
 - `src/utils/` — `appHelper.js` (`APPS`, `getAppName`), `dateTime.js`
@@ -48,6 +48,8 @@ Filters and paging are local state; sorting is client-side on the current page o
 `Button` (Figma buttons: variant primary|secondary|tertiary|link, color default|neutral|danger, size xs|sm|md|lg; tokens `--btn-*` in `index.css`),
 `Modal`, `ConfirmDialog`, `Pager`, `Field`/`ReadOnly` (FormField), `formatDate*` (dateTime.js), `useStatuses`, `useSjoOptions`.
 New buttons use `Button`; the `.btn*` classes and MUI `<Button>` in older screens are legacy until migrated.
+New success / error messages use `useToast()` (`toast.success|info|warning|error(message)`; visual `Toast`, tokens `--toast-*`);
+the hand-written `setTimeout` toasts and notices in older screens are legacy until migrated.
 New modals use `Modal` (InvoiceList's hand-rolled overlays are legacy). Lists use `Pager`.
 
 ## i18n (every visible string)
